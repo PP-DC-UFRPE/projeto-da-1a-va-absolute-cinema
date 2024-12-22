@@ -1,4 +1,7 @@
+module Main where
+
 import Data.List
+import Loop (loop)
 
 type Nome = String
 type Cpf = String
@@ -26,3 +29,6 @@ type Valor = Float
 data Pedido = Ped Cliente Sessao [Ingresso] Valor deriving Show
 
 type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
+
+main :: IO ()
+main = loop
