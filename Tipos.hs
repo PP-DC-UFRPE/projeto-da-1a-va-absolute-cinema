@@ -27,3 +27,68 @@ type Valor = Float
 data Pedido = Ped Cliente Sessao [Ingresso] Valor deriving Show
 
 type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
+
+--abaixo seguem as funções para poder pegar o type especifico a partir do filme
+
+pegarTitulo :: Filme -> String
+pegarTitulo (Filme t _ _ _) = t
+
+pegarGenero :: Filme -> [String]
+pegarGenero (Filme _ g _ _) = g
+
+pegarDuracao :: Filme -> Int
+pegarDuracao (Filme _ _ d _ ) = d
+
+pegarSinopse :: Filme -> String
+pegarSinopse (Filme _ _ _ s) = s
+
+printarFilme :: Filme -> String
+printarFilme (Filme t g d s) = "Titulo: " ++ t ++ ", Generos: " ++ intercalate ", " g ++ ", Duracao: " ++ show d ++ ", Sinopse: " ++ s
+
+--abaixo seguem as funções para poder pegar o type especifico a partir do Cliente
+
+pegarNome :: Cliente -> String
+pegarNome (Cliente n _ _ _) = n
+
+pegarCPF :: Cliente -> String
+pegarCPF (Cliente _ c _ _) = c
+
+pegarIdade :: Cliente -> Int
+pegarIdade (Cliente _ _ i _) = i
+
+pegarOcupacao :: Cliente -> Ocupacao
+pegarOcupacao (Cliente _ _ _ o) = o
+
+printarCliente :: Cliente -> String
+printarCliente (Cliente n c i o) = "Nome: " ++ n ++ ", CPF: " ++ c ++ ", Idade: " ++ show i ++ ", Ocupacao: " ++ show o
+
+--abaixo seguem as funções para poder pegar o type especifico a partir da sessão
+
+pegarTituloDaSessao :: Sessao -> String
+pegarTituloDaSessao (Sessao (Filme t _ _ _) _ _ _ _ _) = t
+
+pegarGeneroDaSessao :: Sessao -> [String]
+pegarGeneroDaSessao (Sessao (Filme _ g _ _) _ _ _ _ _) = g
+
+pegarDuracaoDaSessao :: Sessao -> Int
+pegarDuracaoDaSessao (Sessao (Filme _ _ d _) _ _ _ _ _) =  d
+
+pegarSinopseDaSessao :: Sessao -> String
+pegarSinopseDaSessao (Sessao (Filme _ _ _ s) _ _ _ _ _) = s
+
+pegarTipoSessaoDaSessao :: Sessao -> TipoSessao
+pegarTipoSessaoDaSessao (Sessao _ _ s _ _ _) = s
+
+--abaixo seguem as funções para poder o type específico a partir do pedido
+
+pegarNomeDoPedido :: Pedido -> String
+pegarNomeDoPedido (Ped (Cliente n _ _ _) _ _ _) = n
+
+pegarCPFDoPedido :: Pedido -> String
+pegarCPFDoPedido (Ped (Cliente _ c _ _) _ _ _) = c
+
+pegarIdadeDoPedido :: Pedido -> Int
+pegarIdadeDoPedido (Ped (Cliente _ _ i _) _ _ _) = i
+
+pegarOcupacaoDoPedido :: Pedido -> Ocupacao
+pegarOcupacaoDoPedido (Ped (Cliente _ _ _ o) _ _ _) = o 

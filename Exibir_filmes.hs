@@ -2,7 +2,7 @@ module Exibir_filmes
 (exibicao) where
 import Tipos
 
-jaws = Filme "Jaws" ["Acao"] 90 "hahah" 
+jaws = Filme "Tubarao" ["Suspense", "Comedia", "Ficcao Cientifica", "Drama", "Misterio", "Aventura"] 124 "Um filme de um tubarao" 
 s = Sessao jaws (12, 40) Dublado True 2 [('d', 2, False)]
 
 --printar :: Cliente -> String
@@ -11,10 +11,9 @@ s = Sessao jaws (12, 40) Dublado True 2 [('d', 2, False)]
 printar :: Sessao -> String
 printar (Sessao f h t i s a) = "Filme: " ++ show f
 
-pegarTitulo :: Sessao -> String
-pegarTitulo (Sessao (Filme t _ _ _) _ _ _ _ _ ) = t --acho inteligente criar um arquivo de utilidades com funções desse tipo
-
 exibicao :: IO()
 exibicao = do
-    putStrLn(pegarTitulo s)
+    putStrLn(pegarTituloDaSessao s)
+    putStrLn(pegarTitulo jaws)
+    putStrLn(printarFilme jaws)
     putStrLn(printar s)
