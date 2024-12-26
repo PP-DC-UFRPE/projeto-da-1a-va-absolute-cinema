@@ -5,5 +5,6 @@ import Dados
 
 exibicao :: IO()
 exibicao = do
-    putStrLn "Esses são os filmes disponíveis hoje: "
-    printarFilmes sistema
+    putStrLn "Esses são os filmes disponíveis hoje:"
+    printarFilmesESessoes sistema
+    

@@ -11,7 +11,7 @@ type Titulo = String
 type Genero = [String]
 type Duracao = Int -- Minutos
 type Sinopse = String
-data Filme = Filme Titulo Genero Duracao Sinopse deriving Show
+data Filme = Filme Titulo Genero Duracao Sinopse deriving (Show, Eq)
 
 type Horario = (Int, Int) -- Hora/Minuto
 type Dia = (Int, Int, Int) -- Dia/Mes/Ano
@@ -33,8 +33,8 @@ type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
 pegarTitulo :: Filme -> String
 pegarTitulo (Filme t _ _ _) = t
 
-printarTitulo :: Filme -> IO ()
-printarTitulo f = putStrLn ("Titulo: " ++ pegarTitulo f)
+printarTituloEDuracao :: Filme -> IO ()
+printarTituloEDuracao f = putStrLn ("Titulo: " ++ pegarTitulo f ++ " Duracao: " ++ show (pegarDuracao f))
 
 pegarGenero :: Filme -> [String]
 pegarGenero (Filme _ g _ _) = g
@@ -100,4 +100,14 @@ pegarOcupacaoDoPedido (Ped (Cliente _ _ _ o) _ _ _) = o
 
 printarFilmes :: Sistema -> IO () 
 printarFilmes (_, f, _, _) = do
-    mapM_ printarTitulo f
+    mapM_ printarTituloEDuracao f
+
+printarSessoesPorFilme :: [Sessao] -> Filme -> IO ()
+printarSessoesPorFilme sessoes filme = 
+    mapM_ (\(Sessao _ (h, m) t _ sala _) -> putStrLn ("  Sessao: " ++ show h ++ ":" ++ show m ++ ", " ++ show t ++ ", Sala " ++ show sala)) (filter (\(Sessao f _ _ _ _ _) -> f == filme) sessoes)
+
+printarFilmesESessoes :: Sistema -> IO ()
+printarFilmesESessoes (_, filmes, sessoes, _) = do
+    mapM_ (\filme -> do
+        printarTituloEDuracao filme
+        printarSessoesPorFilme sessoes filme) filmes
