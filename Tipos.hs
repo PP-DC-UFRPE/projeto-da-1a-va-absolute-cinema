@@ -33,6 +33,9 @@ type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
 pegarTitulo :: Filme -> String
 pegarTitulo (Filme t _ _ _) = t
 
+printarTitulo :: Filme -> IO ()
+printarTitulo f = putStrLn ("Titulo: " ++ pegarTitulo f)
+
 pegarGenero :: Filme -> [String]
 pegarGenero (Filme _ g _ _) = g
 
@@ -92,3 +95,9 @@ pegarIdadeDoPedido (Ped (Cliente _ _ i _) _ _ _) = i
 
 pegarOcupacaoDoPedido :: Pedido -> Ocupacao
 pegarOcupacaoDoPedido (Ped (Cliente _ _ _ o) _ _ _) = o 
+
+--abaixo seguem as funções para poder mexer com o Sistema
+
+printarFilmes :: Sistema -> IO () 
+printarFilmes (_, f, _, _) = do
+    mapM_ printarTitulo f
