@@ -1,5 +1,6 @@
 module Main where
 import Exibir_filmes (exibicao)
+import Compra_de_ingresso
 import System.IO -- usem quando precisar do hFlush
 
 main :: IO()
@@ -26,6 +27,7 @@ casos input = case input of
     "2" -> do 
         main
     "3" -> do 
+        compra
         main
     "0" -> do
         putStrLn "Saindo do programa"
