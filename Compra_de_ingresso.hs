@@ -24,5 +24,6 @@ compra = do
     hFlush stdout
     input2 <- getLine
     let num2 = read input2 :: Int
-    printarSessaoPorNumero num2 sessoes
+    printarAssentosPorNumeroSessao num2 sessoes
+    
     putStrLn ""

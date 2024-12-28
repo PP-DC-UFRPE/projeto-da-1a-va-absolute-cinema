@@ -82,6 +82,16 @@ pegarSinopseDaSessao (Sessao (Filme _ _ _ s) _ _ _ _ _) = s
 pegarTipoSessaoDaSessao :: Sessao -> TipoSessao
 pegarTipoSessaoDaSessao (Sessao _ _ s _ _ _) = s
 
+pegarAssentosDaSessao :: Sessao -> [Assento]
+pegarAssentosDaSessao (Sessao _ _ _ _ _ assentos) = assentos
+pegarAssentosDaSessao _ = []
+
+printarAssentosDaSessao :: Sessao -> IO ()
+printarAssentosDaSessao sessao = mapM_ print (pegarAssentosDaSessao sessao)
+
+printarAssentosDasSessoes :: [Sessao] -> IO ()
+printarAssentosDasSessoes sessoes = mapM_ printarAssentosDaSessao sessoes
+
 --abaixo seguem as funções para poder o type específico a partir do pedido
 
 pegarNomeDoPedido :: Pedido -> String
@@ -116,3 +126,8 @@ printarSessaoPorNumero :: Int -> [Sessao] -> IO ()
 printarSessaoPorNumero numeroSala sessoes = do
     let sessoesFiltradas = filter (\(Sessao _ _ _ _ numero _) -> numero == numeroSala) sessoes
     mapM_ print sessoesFiltradas
+
+printarAssentosPorNumeroSessao :: Int -> [Sessao] -> IO ()
+printarAssentosPorNumeroSessao numeroSala sessoes = do
+    let sessoesFiltradas = filter (\(Sessao _ _ _ _ numero _) -> numero == numeroSala) sessoes
+    printarAssentosDasSessoes sessoesFiltradas
