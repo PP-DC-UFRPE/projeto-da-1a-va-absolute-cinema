@@ -18,4 +18,11 @@ compra = do
     hFlush stdout
     input <- getLine
     let num = read input :: Int
-    putStrLn (show input)
+    printarSessoesPorFilme sessoes (filmes !! num)
+
+    putStr "Digite o numero da sala: "
+    hFlush stdout
+    input2 <- getLine
+    let num2 = read input2 :: Int
+    printarSessaoPorNumero num2 sessoes
+    putStrLn ""

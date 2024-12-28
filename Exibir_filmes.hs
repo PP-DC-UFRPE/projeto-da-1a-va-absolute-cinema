@@ -7,4 +7,5 @@ exibicao :: IO()
 exibicao = do
     putStrLn "Esses são os filmes disponíveis hoje:"
     printarFilmesESessoes sistema
+    putStrLn ""
     

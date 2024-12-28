@@ -111,3 +111,8 @@ printarFilmesESessoes (_, filmes, sessoes, _) = do
     mapM_ (\filme -> do
         printarTituloEDuracao filme
         printarSessoesPorFilme sessoes filme) filmes
+
+printarSessaoPorNumero :: Int -> [Sessao] -> IO ()
+printarSessaoPorNumero numeroSala sessoes = do
+    let sessoesFiltradas = filter (\(Sessao _ _ _ _ numero _) -> numero == numeroSala) sessoes
+    mapM_ print sessoesFiltradas

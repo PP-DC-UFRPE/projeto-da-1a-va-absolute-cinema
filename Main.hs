@@ -17,6 +17,7 @@ main = do
                   -- encontrar outro \n, o que acontece quando a gente aperta o enter no input.-
                   -- hFlush força o que está guardado no buffer para fora
     input <- getLine
+    putStrLn ""
     casos input
    
 casos :: String -> IO ()
