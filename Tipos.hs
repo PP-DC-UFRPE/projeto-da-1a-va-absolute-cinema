@@ -28,7 +28,7 @@ data Pedido = Ped Cliente Sessao [Ingresso] Valor deriving Show
 
 type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
 
--- Functions required for the system
+-- Funções do sistema
 pegarTitulo :: Filme -> String
 pegarTitulo (Filme t _ _ _) = t
 
