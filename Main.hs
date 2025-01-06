@@ -1,6 +1,7 @@
 module Main where
+
 import Exibir_filmes (exibicao)
-import Compra_de_ingresso
+import Compra_de_ingresso (visualizarIngressos, compra)
 import Tipos (Sistema)
 import Dados (iniciarSistema)
 import Data.IORef
@@ -17,6 +18,7 @@ loop sistemaRef = do
     putStrLn "1) Exibir filmes disponíveis"
     putStrLn "2) Cadastro de usuário"
     putStrLn "3) Comprar ingresso"
+    putStrLn "4) Visualizar ingressos comprados"
     putStrLn "0) Sair"
     putStr "Input: "
     hFlush stdout
@@ -33,6 +35,9 @@ casos input sistemaRef = case input of
         loop sistemaRef
     "3" -> do
         compra sistemaRef
+        loop sistemaRef
+    "4" -> do
+        visualizarIngressos sistemaRef
         loop sistemaRef
     "0" -> do
         putStrLn "Saindo do programa"
