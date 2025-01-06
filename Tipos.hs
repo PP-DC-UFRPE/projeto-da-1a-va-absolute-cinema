@@ -32,14 +32,17 @@ type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
 
 -- Funções auxiliares para manipular dados e exibir informações
 
+-- Calcula o valor total dos ingressos
 calcularValor :: [Ingresso] -> Float
 calcularValor = sum . map (\(tipo, _) -> case tipo of
-    Inteira v -> v
-    Meia      -> 10.0) -- Exemplo de preço para meia-entrada
+    Inteira v -> v -- se for inteiro, retorna o valor
+    Meia      -> 10.0) -- se for meia, somente 10
 
+--pega o título
 pegarTitulo :: Filme -> String
 pegarTitulo (Filme t _ _ _) = t
 
+-- pega a duração
 pegarDuracao :: Filme -> Int
 pegarDuracao (Filme _ _ d _) = d
 
@@ -47,27 +50,33 @@ pegarDuracao (Filme _ _ d _) = d
 printarTituloEDuracao :: Filme -> IO ()
 printarTituloEDuracao f = putStrLn ("Titulo: " ++ pegarTitulo f ++ " Duracao: " ++ show (pegarDuracao f))
 
+-- exibe todos os filmes e suas respectivas sessões
 printarFilmesESessoes :: Sistema -> IO ()
 printarFilmesESessoes (_, filmes, sessoes, _) = do
     mapM_ (\filme -> do
         printarTituloEDuracao filme
         printarSessoesPorFilme sessoes filme) filmes
 
+-- Exibe as sessões de um filme específico
 printarSessoesPorFilme :: [Sessao] -> Filme -> IO ()
 printarSessoesPorFilme sessoes filme =
     mapM_ (\(Sessao _ (h, m) t _ sala _) -> putStrLn ("  Sessao: " ++ show h ++ ":" ++ show m ++ ", " ++ show t ++ ", Sala " ++ show sala)) (filter (\(Sessao f _ _ _ _ _) -> f == filme) sessoes)
 
+-- printa assentos por numero e sessãojj
 printarAssentosPorNumeroSessao :: Int -> [Sessao] -> IO ()
 printarAssentosPorNumeroSessao numeroSala sessoes = do
     let sessoesFiltradas = filter (\(Sessao _ _ _ _ numero _) -> numero == numeroSala) sessoes
     printarAssentosDasSessoes sessoesFiltradas
 
+-- printa assentos das sessões
 printarAssentosDasSessoes :: [Sessao] -> IO ()
 printarAssentosDasSessoes sessoes = mapM_ printarAssentosDaSessao sessoes
 
+-- printa assentos da sessão específica
 printarAssentosDaSessao :: Sessao -> IO ()
 printarAssentosDaSessao sessao = mapM_ print (pegarAssentosDaSessao sessao)
 
+-- pega os assentos da sessão
 pegarAssentosDaSessao :: Sessao -> [Assento]
 pegarAssentosDaSessao (Sessao _ _ _ _ _ assentos) = assentos
 
@@ -83,6 +92,8 @@ atualizarAssento letra numAssento sessoes =
         | otherwise                      = (lAssento, nAssento, ocupado)
 
 -- Funções relacionadas à compra de ingressos
+--
+-- printa todos os ingressos
 visualizarIngressos :: IORef Sistema -> IO ()
 visualizarIngressos sistemaRef = do
     sistema <- readIORef sistemaRef
@@ -94,6 +105,7 @@ visualizarIngressos sistemaRef = do
             mapM_ exibirPedido pedidos
             putStrLn ""
 
+-- exibe os ingressos
 exibirPedido :: Pedido -> IO ()
 exibirPedido (Ped (Cliente nome cpf _ _) (Sessao (Filme titulo _ _ _) (h, m) tipo _ sala _) ingressos valor) = do
     putStrLn $ "Cliente: " ++ nome ++ " (CPF: " ++ cpf ++ ")"

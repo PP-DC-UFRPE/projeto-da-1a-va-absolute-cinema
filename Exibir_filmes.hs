@@ -4,6 +4,7 @@ import Tipos
 import Dados
 import Data.IORef
 
+-- Exibe os filmes disponíveis e suas sessões
 exibicao :: IORef Sistema -> IO ()
 exibicao sistemaRef = do
     sistema <- readIORef sistemaRef
