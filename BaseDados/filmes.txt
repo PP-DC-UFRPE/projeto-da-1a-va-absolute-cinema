@@ -1,0 +1,3 @@
+Filme;Tubarao;Ação,Comedia;124;Filme de animação sobre um tubarão;
+Filme;Aventuras Espaciais;Ficção Científica,Aventura;142;Uma jornada épica por galáxias desconhecidas;
+Filme;O Mistério do Farol;Suspense,Drama;98;Uma história envolvente sobre segredos em um farol isolado;
