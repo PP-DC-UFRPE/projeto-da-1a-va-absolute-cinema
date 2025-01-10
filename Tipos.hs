@@ -17,7 +17,7 @@ data Filme = Filme Titulo Genero Duracao Sinopse deriving (Show, Eq)
 
 type Horario = (Int, Int) -- Hora/Minuto
 type Dia = (Int, Int, Int) -- Dia/Mes/Ano
-data TipoSessao = Dublado | Legendado deriving Show
+data TipoSessao = Dublado | Legendado deriving (Show, Read)
 type Is3D = Bool
 type Sala = Int
 type Assento = (Char, Int, Bool) -- Letra da Fileira/Numero Assento/Ocupado
@@ -61,11 +61,21 @@ printarSessoesPorFilme :: [Sessao] -> Filme -> IO ()
 printarSessoesPorFilme sessoes filme =
     mapM_ (\(Sessao _ (h, m) t _ sala _) -> putStrLn ("  Sessao: " ++ show h ++ ":" ++ show m ++ ", " ++ show t ++ ", Sala " ++ show sala)) (filter (\(Sessao f _ _ _ _ _) -> f == filme) sessoes)
 
--- Printa assentos por numero e sessãojj
+-- Formata um assento para exibição com "Disponível" ou "Ocupado"
+formatarAssento :: Assento -> String
+formatarAssento (letra, numero, ocupado) =
+    let status = if ocupado then "Ocupado" else "Disponível"
+    in "(" ++ [letra] ++ show numero ++ ", " ++ status ++ ")"
+
+-- Exibe os assentos disponíveis na sessão selecionada
 printarAssentosPorNumeroSessao :: Int -> [Sessao] -> IO ()
-printarAssentosPorNumeroSessao numeroSala sessoes = do
-    let sessoesFiltradas = filter (\(Sessao _ _ _ _ numero _) -> numero == numeroSala) sessoes
-    printarAssentosDasSessoes sessoesFiltradas
+printarAssentosPorNumeroSessao salaNum sessoes = do
+    let sessao = filter (\(Sessao _ _ _ _ n _) -> n == salaNum) sessoes
+    case sessao of
+        [] -> putStrLn "Sala não encontrada!"
+        (Sessao _ _ _ _ _ assentos : _) -> do
+            putStrLn "Assentos disponíveis na sala:"
+            mapM_ (putStrLn . formatarAssento) assentos
 
 -- Printa assentos das sessões
 printarAssentosDasSessoes :: [Sessao] -> IO ()

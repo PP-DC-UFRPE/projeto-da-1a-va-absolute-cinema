@@ -1,67 +1,106 @@
 module Dados where
+
 import Tipos
 import Data.IORef
 import System.Directory (doesFileExist)
 import Text.Read (readMaybe)
+import Data.List (find)
+import Data.Maybe (mapMaybe)
 
--- Caminho do arquivo de filmes e sessões
-filmesFilePath :: FilePath
-filmesFilePath = "./BaseDados/filmes.txt"
-
--- Leitura do arquivo de dados Filmes.txt
-instance Read Filme where
-    readsPrec _ str = 
-        [(Filme titulo generos duracao sinopse, rest4)] where
-        (titulo, rest1) = span (/= ';') (drop 6 str) 
-        (generosStr, rest2) = span (/= ';') (tail rest1)
-        generos = split ',' generosStr
-        (duracaoStr, rest3) = span (/= ';') (tail rest2)
-        duracao = read duracaoStr :: Int
-        (sinopse, rest4) = span (/= '\n') (tail rest3)
-
--- Função auxiliar para dividir strings
+-- Função auxiliar para dividir strings em partes com base em um delimitador
 split :: Char -> String -> [String]
 split delim str =
     case break (== delim) str of
         (part, "") -> [part]
         (part, _:rest) -> part : split delim rest
 
--- Função genérica para carregar dados de um arquivo
-carregar :: Read a => FilePath -> IO [a]
-carregar filePath = do
-    existe <- doesFileExist filePath
-    if not existe
-        then do
-            putStrLn $ "Arquivo " ++ filePath ++ " não encontrado. Retornando lista vazia."
-            return [] -- Retorna lista vazia se o arquivo não existe
-        else do
-            conteudo <- readFile filePath
-            let dados = mapM readMaybe (lines conteudo)
-            case dados of
-                Just lista -> return lista
-                Nothing -> error $ "Erro ao ler os dados do arquivo: " ++ filePath
+-- Função para mapear o campo de gêneros de um filme de uma string para uma lista de strings
+-- Exemplo: "[Aventura,Ficção]" -> ["Aventura", "Ficção"]
+parseGenero :: String -> [String]
+parseGenero str = split ',' (filter (`notElem` "[]") str)
 
--- Função genérica para salvar dados no arquivo
-salvar :: Show a => FilePath -> [a] -> IO ()
-salvar filePath dados = do
-    let conteudo = unlines $ map show dados
-    writeFile filePath conteudo
+-- Função para mapear uma linha de texto em um objeto do tipo Filme
+-- Cada linha segue o formato: "Titulo;[Genero1,Genero2];Duracao;Sinopse"
+parseFilme :: String -> Filme
+parseFilme linha = 
+    let partes = split ';' linha
+        titulo = partes !! 0
+        genero = parseGenero (partes !! 1)
+        duracao = read (partes !! 2) :: Int
+        sinopse = partes !! 3
+    in Filme titulo genero duracao sinopse
 
--- Carregar filmes
-carregarFilmes :: IO [Filme]
-carregarFilmes = carregar filmesFilePath
+-- Função para carregar filmes de um arquivo de texto e convertê-los em uma lista de objetos Filme
+carregarFilmes :: FilePath -> IO [Filme]
+carregarFilmes caminho = do
+    conteudo <- readFile caminho
+    let linhas = lines conteudo
+    return $ map parseFilme linhas
 
--- Salvar filmes
-salvarFilmes :: [Filme] -> IO ()
-salvarFilmes filmes = salvar filmesFilePath filmes
+-- Função para mapear uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros)
+parseHorario :: String -> Horario
+parseHorario str = 
+    let [h, m] = map read $ split ':' str
+    in (h, m)
 
--- Inicialização do sistema com filmes e sessões
+-- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (tupla de inteiros)
+parseDia :: String -> Dia
+parseDia str = 
+    let [d, m, a] = map read $ split '/' str
+    in (d, m, a)
+
+-- Função para mapear a string de assentos no formato "[('A',1,False),...]" para uma lista de Assento
+parseAssentos :: String -> [Assento]
+parseAssentos str =
+    let limpar = filter (`notElem` "[]() ") str -- Remove caracteres desnecessários
+        assentosStrs = split ',' limpar         -- Divide a string por vírgulas
+    in map parseAssento (agrupaAssentos assentosStrs)
+
+-- Divide a lista de strings em grupos de três (Char, Int, Bool)
+-- Exemplo: ["A","1","True","B","2","False"] -> [["A","1","True"],["B","2","False"]]
+agrupaAssentos :: [String] -> [[String]]
+agrupaAssentos [] = []
+agrupaAssentos (a:b:c:xs) = [a, b, c] : agrupaAssentos xs
+agrupaAssentos _ = error "Formato inválido de assentos."
+
+-- Converte um grupo de três strings em um objeto Assento
+-- Exemplo: ["A","1","True"] -> ('A',1,True)
+parseAssento :: [String] -> Assento
+parseAssento [fileira, numero, ocupado] =
+    (head fileira, read numero, read ocupado)
+parseAssento _ = error "Formato inválido de assento."
+
+-- Função para mapear uma linha de texto em uma Sessão
+-- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
+parseSessao :: [Filme] -> String -> Maybe Sessao
+parseSessao filmes linha = 
+    let partes = split ';' linha
+        titulo = partes !! 0
+        filme = find (\(Filme t _ _ _) -> t == titulo) filmes
+        horario = parseHorario $ partes !! 1
+        tipoSessao = readMaybe (partes !! 3) :: Maybe TipoSessao
+        is3D = read (partes !! 4) :: Bool
+        sala = read (partes !! 5) :: Int
+        assentos = parseAssentos $ partes !! 6
+    in case (filme, tipoSessao) of
+        (Just f, Just ts) -> Just $ Sessao f horario ts is3D sala assentos
+        _ -> Nothing
+
+-- Função para carregar sessões de um arquivo e associá-las aos filmes correspondentes
+carregarSessoes :: FilePath -> [Filme] -> IO [Sessao]
+carregarSessoes caminho filmes = do
+    conteudo <- readFile caminho
+    let linhas = lines conteudo
+    return $ mapMaybe (parseSessao filmes) linhas
+
+-- Função para inicializar o sistema carregando filmes e sessões
 inicialSistema :: IO Sistema
 inicialSistema = do
-    filmes <- carregarFilmes
-    return ([], filmes, [], []) -- Inicializa com listas vazias para Cliente, Sessão e Pedido
+    filmes <- carregarFilmes "./BaseDados/filmes.txt"
+    sessoes <- carregarSessoes "./BaseDados/sessoes.txt" filmes
+    return ([], filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
 
--- Inicialização do sistema usando IORef
+-- Função para criar um sistema com IORef para manipulação do estado
 iniciarSistema :: IO (IORef Sistema)
 iniciarSistema = do
     sistema <- inicialSistema

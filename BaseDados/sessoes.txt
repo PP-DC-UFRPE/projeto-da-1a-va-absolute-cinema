@@ -1,0 +1,2 @@
+Avatar;18:30;01/02/2025;Dublado;False;3;[(A,1,False),(A,2,False),(B,1,True)]
+O Rei Leão;14:00;01/02/2025;Dublado;False;1;[(A,1,True),(A,2,True),(B,1,False)]
