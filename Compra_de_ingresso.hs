@@ -51,7 +51,7 @@ compra sistemaRef = do
     let numAssento = read assentoInput :: Int
 
     -- Verifica se o assento está disponível
-    let sessaoSelecionada = head (filter (\(Sessao _ _ _ _ n _) -> n == salaNum) sessoes)
+    let sessaoSelecionada = head (filter (\(Sessao _ _ _ _ _ n _) -> n == salaNum) sessoes)
     let assentoDisponivel = verificaAssentoDisponivel letra numAssento sessaoSelecionada
 
     if assentoDisponivel
@@ -105,7 +105,7 @@ compra sistemaRef = do
 
 -- Verifica se o assento está disponível
 verificaAssentoDisponivel :: Char -> Int -> Sessao -> Bool
-verificaAssentoDisponivel letra numAssento (Sessao _ _ _ _ _ assentos) =
+verificaAssentoDisponivel letra numAssento (Sessao _ _ _ _ _ _ assentos) =
     not $ any (\(l, n, ocupado) -> l == letra && n == numAssento && ocupado) assentos
 
 -- Visualiza ingressos comprados

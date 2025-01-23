@@ -1,2 +1,2 @@
-Avatar;[Ficção Científica,Aventura];162;Um ex-fuzileiro naval paraplégico é enviado ao planeta Pandora, onde se envolve em um conflito entre os habitantes nativos e os humanos exploradores;
-O Rei Leão;[Animação,Aventura,Drama];118;A história do jovem leão Simba que precisa superar a morte do pai e tomar seu lugar como rei da selva;
+Avatar;[Ficção Científica,Aventura];162;Um ex-fuzileiro naval paraplégico é enviado ao planeta Pandora, onde se envolve em um conflito entre os habitantes nativos e os humanos exploradores
+O Rei Leão;[Animação,              Aventura,Drama];118;A história do jovem leão Simba que precisa superar a morte do pai e tomar seu lugar como rei da selva

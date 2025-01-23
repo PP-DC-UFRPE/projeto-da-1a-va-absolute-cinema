@@ -21,7 +21,7 @@ data TipoSessao = Dublado | Legendado deriving (Show, Read)
 type Is3D = Bool
 type Sala = Int
 type Assento = (Char, Int, Bool) -- Letra da Fileira/Numero Assento/Ocupado
-data Sessao = Sessao Filme Horario TipoSessao Is3D Sala [Assento] deriving Show
+data Sessao = Sessao Filme Horario Dia TipoSessao Is3D Sala [Assento] deriving Show
 
 data TipoIngresso = Inteira Float | Meia deriving Show
 type Ingresso = (TipoIngresso, Assento)
@@ -59,7 +59,12 @@ printarFilmesESessoes (_, filmes, sessoes, _) = do
 -- Exibe as sessões de um filme específico
 printarSessoesPorFilme :: [Sessao] -> Filme -> IO ()
 printarSessoesPorFilme sessoes filme =
-    mapM_ (\(Sessao _ (h, m) t _ sala _) -> putStrLn ("  Sessao: " ++ show h ++ ":" ++ show m ++ ", " ++ show t ++ ", Sala " ++ show sala)) (filter (\(Sessao f _ _ _ _ _) -> f == filme) sessoes)
+    mapM_ (\(Sessao _ (h, m) (d, mo, a) t _ sala _) ->
+        putStrLn $ "  Sessao: " ++ show h ++ ":" ++ show m ++
+                   ", Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++
+                   ", " ++ show t ++ ", Sala " ++ show sala) 
+        (filter (\(Sessao f _ _ _ _ _ _) -> f == filme) sessoes)
+
 
 -- Formata um assento para exibição com "Disponível" ou "Ocupado"
 formatarAssento :: Assento -> String
@@ -70,12 +75,13 @@ formatarAssento (letra, numero, ocupado) =
 -- Exibe os assentos disponíveis na sessão selecionada
 printarAssentosPorNumeroSessao :: Int -> [Sessao] -> IO ()
 printarAssentosPorNumeroSessao salaNum sessoes = do
-    let sessao = filter (\(Sessao _ _ _ _ n _) -> n == salaNum) sessoes
+    let sessao = filter (\(Sessao _ _ _ _ _ n _) -> n == salaNum) sessoes
     case sessao of
         [] -> putStrLn "Sala não encontrada!"
-        (Sessao _ _ _ _ _ assentos : _) -> do
-            putStrLn "Assentos disponíveis na sala:"
+        (Sessao _ _ (d, mo, a) _ _ _ assentos : _) -> do
+            putStrLn $ "Assentos disponíveis na sala (Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++ "):"
             mapM_ (putStrLn . formatarAssento) assentos
+
 
 -- Printa assentos das sessões
 printarAssentosDasSessoes :: [Sessao] -> IO ()
@@ -87,13 +93,13 @@ printarAssentosDaSessao sessao = mapM_ print (pegarAssentosDaSessao sessao)
 
 -- Pega os assentos da sessão
 pegarAssentosDaSessao :: Sessao -> [Assento]
-pegarAssentosDaSessao (Sessao _ _ _ _ _ assentos) = assentos
+pegarAssentosDaSessao (Sessao _ _ _ _ _ _ assentos) = assentos
 
 -- Atualização de assentos
 atualizarAssento :: Char -> Int -> [Sessao] -> [Sessao]
 atualizarAssento letra numAssento sessoes =
-    map (\(Sessao filme horario tipo3D isSala sala assentos) -> 
-            Sessao filme horario tipo3D isSala sala (map (atualizar letra numAssento) assentos)
+    map (\(Sessao filme horario dia tipo3D isSala sala assentos) -> 
+            Sessao filme horario dia tipo3D isSala sala (map (atualizar letra numAssento) assentos)
         ) sessoes
   where
     atualizar l n (lAssento, nAssento, ocupado)
@@ -116,10 +122,11 @@ visualizarIngressos sistemaRef = do
 
 -- Exibe os ingressos
 exibirPedido :: Pedido -> IO ()
-exibirPedido (Ped (Cliente nome cpf _ _) (Sessao (Filme titulo _ _ _) (h, m) tipo _ sala _) ingressos valor) = do
+exibirPedido (Ped (Cliente nome cpf _ _) (Sessao (Filme titulo _ _ _) (h, m) (d, mo, a) tipo _ sala _) ingressos valor) = do
     putStrLn $ "Cliente: " ++ nome ++ " (CPF: " ++ cpf ++ ")"
     putStrLn $ "Filme: " ++ titulo
-    putStrLn $ "Horário: " ++ show h ++ ":" ++ show m
+    putStrLn $ "Horário: " ++ show h ++ ":" ++ show m ++
+               " | Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a
     putStrLn $ "Sala: " ++ show sala ++ " | Sessão: " ++ show tipo
     putStrLn $ "Ingressos: " ++ show (length ingressos) ++ " - Valor total: R$ " ++ show valor
     mapM_ exibirIngresso ingressos

@@ -3,7 +3,7 @@ module Main where
 import Exibir_filmes (exibicao)
 import Compra_de_ingresso (visualizarIngressos, compra)
 import Tipos (Sistema)
-import Dados (iniciarSistema)
+import Dados (iniciarSistema, salvarSistema)
 import Data.IORef
 import System.IO
 
@@ -38,11 +38,13 @@ casos input sistemaRef = case input of
         loop sistemaRef  -- volta ao menu (por enquanto)
     "3" -> do
         compra sistemaRef  -- compra de ingresso
+        salvarSistema sistemaRef
         loop sistemaRef
     "4" -> do
         visualizarIngressos sistemaRef  -- Exibe ingressos comprados
         loop sistemaRef
     "0" -> do
+        salvarSistema sistemaRef
         putStrLn "Saindo do programa"  -- Encerra o programa
     _   -> do
         putStrLn "Opção inválida"  -- Caso o usuário digite uma opção inválida
