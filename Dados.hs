@@ -15,7 +15,8 @@ split delim str =
         (part, "") -> [part]
         (part, _:rest) -> part : split delim rest
 
----- Funções de Mapeamento dos objetos
+
+---- Funções de Mapeamento dos objetos:
 -- Função para carregar clientes de um arquivo
 parseCliente :: String -> Cliente
 parseCliente linha = 
@@ -47,13 +48,13 @@ parseFilme linha =
         sinopse = partes !! 3
     in Filme titulo genero duracao sinopse
 
--- Função para mapear uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros)
+-- Função para mapear uma string no formato "HH:MM" para um tipo Horario (int, int)
 parseHorario :: String -> Horario
 parseHorario str = 
     let [h, m] = map read $ split ':' str
     in (h, m)
 
--- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (tupla de inteiros)
+-- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (int, int, int)
 parseDia :: String -> Dia
 parseDia str = 
     let [d, m, a] = map read $ split '/' str
@@ -75,7 +76,7 @@ agrupaAssentos (a:b:c:xs) = [a, b, c] : agrupaAssentos xs
 agrupaAssentos _ = error "Formato inválido de assento."
 
 -- Função para mapear uma linha de texto em uma Sessão
--- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
+-- Ex: A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
 parseSessao :: [Filme] -> String -> Maybe Sessao
 parseSessao filmes linha = 
     let partes = split ';' linha
@@ -91,13 +92,21 @@ parseSessao filmes linha =
         (Just f, Just ts) -> Just $ Sessao f horario dia ts is3D sala assentos
         _ -> Nothing
 
----- Funções para carregar dados
--- Função para carregar clientes de um arquivo
+
+---- Funções para carregar dados:
+-- Função para carregar clientes de um arquivo de texto
 carregarClientes :: FilePath -> IO [Cliente]
 carregarClientes caminho = do
     conteudo <- readFile caminho
     let linhas = lines conteudo
     linhas `seq` return (map parseCliente linhas)
+
+-- Função para carregar filmes de um arquivo de texto 
+carregarFilmes :: FilePath -> IO [Filme]
+carregarFilmes caminho = do
+    conteudo <- readFile caminho
+    let linhas = lines conteudo
+    return $ map parseFilme linhas
 
 -- Função para carregar sessões de um arquivo e associá-las aos filmes correspondentes
 carregarSessoes :: FilePath -> [Filme] -> IO [Sessao]
@@ -106,14 +115,8 @@ carregarSessoes caminho filmes = do
     let linhas = lines conteudo
     return $ mapMaybe (parseSessao filmes) linhas
 
--- Função para carregar filmes de um arquivo de texto e convertê-los em uma lista de objetos Filme
-carregarFilmes :: FilePath -> IO [Filme]
-carregarFilmes caminho = do
-    conteudo <- readFile caminho
-    let linhas = lines conteudo
-    return $ map parseFilme linhas
 
----- Funções para salvar dados em arquivo .txt
+---- Funções para salvar dados em arquivo .txt:
 -- Função para salvar filmes em um arquivo
 salvarFilmes :: [Filme] -> IO ()
 salvarFilmes filmes = do
@@ -175,7 +178,7 @@ salvarClientes clientes = do
     formatarCliente (Cliente nome cpf idade ocupacao) =
         nome ++ ";" ++ cpf ++ ";" ++ show idade ++ ";" ++ show ocupacao
 
--- Atualizar a função salvarSistema para usar as funções acima
+-- Função principal para salvar todos os dados (Cliente, Filme, Sessão)
 salvarSistema :: IORef Sistema -> IO ()
 salvarSistema sistemaRef = do
     sistema <- readIORef sistemaRef
@@ -193,7 +196,7 @@ inicialSistema = do
     sessoes <- carregarSessoes "./BaseDados/sessoes.txt" filmes
     return ([], filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
 
--- Função para criar um sistema com IORef para manipulação do estado
+---- Função para criar um sistema com IORef para manipulação do estado
 iniciarSistema :: IO (IORef Sistema)
 iniciarSistema = do
     sistema <- inicialSistema
