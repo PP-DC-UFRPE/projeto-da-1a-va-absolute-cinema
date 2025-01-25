@@ -127,7 +127,7 @@ salvarFilmes filmes = do
   where
     formatarFilme :: Filme -> String
     formatarFilme (Filme id titulo genero duracao sinopse) =
-        titulo ++ ";" ++ formatarGenero genero ++ ";" ++ show duracao ++ ";" ++ sinopse
+        show id ++ ";" ++ titulo ++ ";" ++ formatarGenero genero ++ ";" ++ show duracao ++ ";" ++ sinopse
 
     formatarGenero :: Genero -> String
     formatarGenero genero = "[" ++ unwords (map (\g -> g ++ ",") (init genero)) ++ last genero ++ "]"

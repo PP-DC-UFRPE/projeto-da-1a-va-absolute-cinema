@@ -49,6 +49,11 @@ type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
 
 -- Funções auxiliares para manipular dados e exibir informações
 
+pegarFilmes :: IORef Sistema -> IO [Filme]
+pegarFilmes sistemaRef = do
+    (_, filmes, _, _) <- readIORef sistemaRef
+    return filmes
+
 pegarPedidos :: Sistema -> [Pedido]
 pegarPedidos (_, _, _, pedidos) = pedidos
 
