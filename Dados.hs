@@ -7,6 +7,7 @@ import Text.Read (readMaybe)
 import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.List (intercalate)
+import Control.Monad (when)
 
 -- Função auxiliar para dividir strings em partes com base em um delimitador
 split :: Char -> String -> [String]
@@ -15,11 +16,10 @@ split delim str =
         (part, "") -> [part]
         (part, _:rest) -> part : split delim rest
 
-
----- Funções de Mapeamento dos objetos:
+---- Funções de Mapeamento dos objetos
 -- Função para carregar clientes de um arquivo
 parseCliente :: String -> Cliente
-parseCliente linha = 
+parseCliente linha =
     let partes = split ';' linha
         nome = partes !! 0
         cpf = partes !! 1
@@ -40,29 +40,30 @@ parseGenero str = split ',' (filter (`notElem` "[]") str)
 -- Função para mapear uma linha de texto em um objeto do tipo Filme
 -- Cada linha segue o formato: "Titulo;[Genero1,Genero2];Duracao;Sinopse"
 parseFilme :: String -> Filme
-parseFilme linha = 
+parseFilme linha =
     let partes = split ';' linha
-        titulo = partes !! 0
-        genero = parseGenero (partes !! 1)
-        duracao = read (partes !! 2) :: Int
-        sinopse = partes !! 3
-    in Filme titulo genero duracao sinopse
+        id = read (head partes) :: Int
+        titulo = partes !! 1
+        genero = parseGenero (partes !! 2)
+        duracao = read (partes !! 3) :: Int
+        sinopse = partes !! 4
+    in Filme id titulo genero duracao sinopse
 
--- Função para mapear uma string no formato "HH:MM" para um tipo Horario (int, int)
+-- Função para mapear uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros)
 parseHorario :: String -> Horario
-parseHorario str = 
+parseHorario str =
     let [h, m] = map read $ split ':' str
     in (h, m)
 
--- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (int, int, int)
+-- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (tupla de inteiros)
 parseDia :: String -> Dia
-parseDia str = 
+parseDia str =
     let [d, m, a] = map read $ split '/' str
     in (d, m, a)
 
 -- Função para mapear uma string de assentos para uma lista de Assentos
 parseAssentos :: String -> [Assento]
-parseAssentos str = 
+parseAssentos str =
     let -- Remove os colchetes ao redor da lista de assentos
         limpar = filter (`notElem` "[]") str
         -- Divide por vírgulas, cada grupo de 3 representará um assento
@@ -76,37 +77,30 @@ agrupaAssentos (a:b:c:xs) = [a, b, c] : agrupaAssentos xs
 agrupaAssentos _ = error "Formato inválido de assento."
 
 -- Função para mapear uma linha de texto em uma Sessão
--- Ex: A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
+-- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
 parseSessao :: [Filme] -> String -> Maybe Sessao
-parseSessao filmes linha = 
+parseSessao filmes linha =
     let partes = split ';' linha
-        titulo = partes !! 0
-        filme = find (\(Filme t _ _ _) -> t == titulo) filmes
-        horario = parseHorario $ partes !! 1
-        dia = parseDia $ partes !! 2
-        tipoSessao = readMaybe (partes !! 3) :: Maybe TipoSessao
-        is3D = read (partes !! 4) :: Bool
-        sala = read (partes !! 5) :: Int
-        assentos = parseAssentos $ partes !! 6
+        id = read (head partes) :: Int
+        titulo = partes !! 1
+        filme = find (\(Filme _ t _ _ _) -> t == titulo) filmes
+        horario = parseHorario $ partes !! 2
+        dia = parseDia $ partes !! 3
+        tipoSessao = readMaybe (partes !! 4) :: Maybe TipoSessao
+        is3D = read (partes !! 5) :: Bool
+        sala = read (partes !! 6) :: Int
+        assentos = parseAssentos $ partes !! 7
     in case (filme, tipoSessao) of
-        (Just f, Just ts) -> Just $ Sessao f horario dia ts is3D sala assentos
+        (Just f, Just ts) -> Just $ Sessao id f horario dia ts is3D sala assentos
         _ -> Nothing
 
-
----- Funções para carregar dados:
--- Função para carregar clientes de um arquivo de texto
+---- Funções para carregar dados
+-- Função para carregar clientes de um arquivo
 carregarClientes :: FilePath -> IO [Cliente]
 carregarClientes caminho = do
     conteudo <- readFile caminho
     let linhas = lines conteudo
     linhas `seq` return (map parseCliente linhas)
-
--- Função para carregar filmes de um arquivo de texto 
-carregarFilmes :: FilePath -> IO [Filme]
-carregarFilmes caminho = do
-    conteudo <- readFile caminho
-    let linhas = lines conteudo
-    return $ map parseFilme linhas
 
 -- Função para carregar sessões de um arquivo e associá-las aos filmes correspondentes
 carregarSessoes :: FilePath -> [Filme] -> IO [Sessao]
@@ -115,17 +109,24 @@ carregarSessoes caminho filmes = do
     let linhas = lines conteudo
     return $ mapMaybe (parseSessao filmes) linhas
 
+-- Função para carregar filmes de um arquivo de texto e convertê-los em uma lista de objetos Filme
+carregarFilmes :: FilePath -> IO [Filme]
+carregarFilmes caminho = do
+    conteudo <- readFile caminho
+    let linhas = lines conteudo
+    return $ map parseFilme linhas
 
----- Funções para salvar dados em arquivo .txt:
+---- Funções para salvar dados em arquivo .txt
 -- Função para salvar filmes em um arquivo
 salvarFilmes :: [Filme] -> IO ()
 salvarFilmes filmes = do
     let caminho = "./BaseDados/filmes.txt"
         conteudo = unlines $ map formatarFilme filmes
-    writeFile caminho conteudo
+    when (length conteudo > 0) $
+        writeFile caminho conteudo
   where
     formatarFilme :: Filme -> String
-    formatarFilme (Filme titulo genero duracao sinopse) =
+    formatarFilme (Filme id titulo genero duracao sinopse) =
         titulo ++ ";" ++ formatarGenero genero ++ ";" ++ show duracao ++ ";" ++ sinopse
 
     formatarGenero :: Genero -> String
@@ -136,11 +137,12 @@ salvarSessoes :: [Sessao] -> IO ()
 salvarSessoes sessoes = do
     let caminho = "./BaseDados/sessoes.txt"
         conteudo = unlines $ map formatarSessao sessoes
-    writeFile caminho conteudo
+    when (length conteudo > 0) $
+        writeFile caminho conteudo
   where
     formatarSessao :: Sessao -> String
-    formatarSessao (Sessao (Filme titulo _ _ _) horario dia tipoSessao is3D sala assentos) =
-        titulo ++ ";" ++ formatarHorario horario ++ ";" ++ formatarDia dia ++ ";" 
+    formatarSessao (Sessao id (Filme _ titulo _ _ _) horario dia tipoSessao is3D sala assentos) =
+        show id ++ ";" ++ titulo ++ ";" ++ formatarHorario horario ++ ";" ++ formatarDia dia ++ ";"
             ++ formatarTipo tipoSessao ++ ";" ++ show is3D ++ ";" ++ show sala ++ ";" ++ formatarAssentos assentos
 
     -- Formata o horário no formato HH:MM
@@ -149,7 +151,7 @@ salvarSessoes sessoes = do
 
     -- Formata a data no formato DD/MM/AAAA
     formatarDia :: Dia -> String
-    formatarDia (d, m, a) = 
+    formatarDia (d, m, a) =
         let formatar n = if n < 10 then "0" ++ show n else show n
         in formatar d ++ "/" ++ formatar m ++ "/" ++ show a
 
@@ -178,7 +180,7 @@ salvarClientes clientes = do
     formatarCliente (Cliente nome cpf idade ocupacao) =
         nome ++ ";" ++ cpf ++ ";" ++ show idade ++ ";" ++ show ocupacao
 
--- Função principal para salvar todos os dados (Cliente, Filme, Sessão)
+-- Atualizar a função salvarSistema para usar as funções acima
 salvarSistema :: IORef Sistema -> IO ()
 salvarSistema sistemaRef = do
     sistema <- readIORef sistemaRef
@@ -191,12 +193,12 @@ salvarSistema sistemaRef = do
 ---- Função para inicializar o sistema carregando filmes e sessões
 inicialSistema :: IO Sistema
 inicialSistema = do
-    --clientes <- carregarClientes "./BaseDados/clientes.txt"
+    clientes <- carregarClientes "./BaseDados/clientes.txt"
     filmes <- carregarFilmes "./BaseDados/filmes.txt"
     sessoes <- carregarSessoes "./BaseDados/sessoes.txt" filmes
     return ([], filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
 
----- Função para criar um sistema com IORef para manipulação do estado
+-- Função para criar um sistema com IORef para manipulação do estado
 iniciarSistema :: IO (IORef Sistema)
 iniciarSistema = do
     sistema <- inicialSistema

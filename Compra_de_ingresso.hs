@@ -1,8 +1,35 @@
 module Compra_de_ingresso where
-import Dados
 import Tipos
 import System.IO
 import Data.IORef
+
+gerarIdPedido :: [Pedido] -> Id
+gerarIdPedido pedidos = 
+    if null pedidos 
+        then 1 
+        else maximum (map getIdPedido pedidos) + 1
+
+-- Funções relacionadas à compra de ingressos
+
+-- Exibe os ingressos
+exibirPedido :: Pedido -> IO ()
+exibirPedido (Ped _ (Cliente nome cpf _ _) (Sessao _ (Filme _ titulo _ _ _) (h, m) (d, mo, a) tipo _ sala _) ingressos valor) = do
+    putStrLn $ "Cliente: " ++ nome ++ " (CPF: " ++ cpf ++ ")"
+    putStrLn $ "Filme: " ++ titulo
+    putStrLn $ "Horário: " ++ show h ++ ":" ++ show m ++
+               " | Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a
+    putStrLn $ "Sala: " ++ show sala ++ " | Sessão: " ++ show tipo
+    putStrLn $ "Ingressos: " ++ show (length ingressos) ++ " - Valor total: R$ " ++ show valor
+    mapM_ exibirIngresso ingressos
+    putStrLn "--------------------------------"
+
+exibirIngresso :: Ingresso -> IO ()
+exibirIngresso (tipo, (letra, num, _)) = do
+    putStrLn $ "  Assento: " ++ [letra] ++ show num ++ " | " ++ tipoToString tipo
+
+tipoToString :: TipoIngresso -> String
+tipoToString (Inteira v) = "Inteira - R$ " ++ show v
+tipoToString Meia        = "Meia - R$ 10.00"
 
 -- Processo de compra de ingresso
 compra :: IORef Sistema -> IO ()
@@ -51,7 +78,7 @@ compra sistemaRef = do
     let numAssento = read assentoInput :: Int
 
     -- Verifica se o assento está disponível
-    let sessaoSelecionada = head (filter (\(Sessao _ _ _ _ _ n _) -> n == salaNum) sessoes)
+    let sessaoSelecionada = head (filter (\(Sessao _ _ _ _ _ _ n _) -> n == salaNum) sessoes)
     let assentoDisponivel = verificaAssentoDisponivel letra numAssento sessaoSelecionada
 
     if assentoDisponivel
@@ -92,10 +119,13 @@ compra sistemaRef = do
             let tipoIngresso = case ingressoInput of
                     "1" -> Inteira 20.0  -- Preço de ingresso inteiro
                     _   -> Meia  -- Preço de meia-entrada
+            
+            -- Gera um novo ID para o pedido
+            let id = gerarIdPedido pedidos
 
             -- Atualiza o sistema com o novo ingresso
             let novoIngresso = (tipoIngresso, (letra, numAssento, True))
-                pedido = Ped cliente sessaoSelecionada [novoIngresso] (calcularValor [novoIngresso])
+                pedido = Ped id cliente sessaoSelecionada [novoIngresso] (calcularValor [novoIngresso])
                 novasSessoes = atualizarAssento letra numAssento sessoes
                 novoSistema = (clientes ++ [cliente], filmes, novasSessoes, pedidos ++ [pedido])
 
@@ -105,7 +135,7 @@ compra sistemaRef = do
 
 -- Verifica se o assento está disponível
 verificaAssentoDisponivel :: Char -> Int -> Sessao -> Bool
-verificaAssentoDisponivel letra numAssento (Sessao _ _ _ _ _ _ assentos) =
+verificaAssentoDisponivel letra numAssento (Sessao _ _ _ _ _ _ _ assentos) =
     not $ any (\(l, n, ocupado) -> l == letra && n == numAssento && ocupado) assentos
 
 -- Visualiza ingressos comprados
