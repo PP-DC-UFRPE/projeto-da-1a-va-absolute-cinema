@@ -1,1 +1,3 @@
-1;Avatar;[Aï¿½ï¿½o,Ficï¿½ï¿½o,Cientï¿½fica];200;teste
+4;Senhor dos An‚is: A Sociedade do Anel;[Aventura,Fantasia];200;Em uma terra fant stica e £nica, um hobbit recebe de presente de seu tio um anel m gico e maligno que precisa ser destru¡do antes que caia nas mÆos do mal. Para isso, o hobbit Frodo tem um caminho  rduo pela frente, onde encontra perigo, medo e seres bizarros. Ao seu lado para o cumprimento desta jornada, ele aos poucos pode contar com outros hobbits, um elfo, um anÆo, dois humanos e um mago, totalizando nove seres que formam a Sociedade do Anel.
+3;Vingadores: Ultimato;[A‡Æo,Sci-Fi];160;Ap¢s Thanos eliminar metade das criaturas vivas, os Vingadores tˆm de lidar com a perda de amigos e entes queridos. Com Tony Stark vagando perdido no espa‡o sem  gua e comida, Steve Rogers e Natasha Romanov lideram a resistˆncia contra o titÆ louco.
+1;Smurfs;[Aventura,A‡Æo];112;testando

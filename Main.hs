@@ -6,7 +6,6 @@ import Dados
 import Compra_de_ingresso
 import Text.XHtml (menu)
 import Filmes
-import Filmes (menuAdicionarFilme)
 
 -- Função que inicializa o programa
 main :: IO ()
@@ -67,7 +66,7 @@ loginAdmin sistemaRef = do
 
 menuAdmin :: IORef Sistema -> IO ()
 menuAdmin sistemaRef = do
-    putStrLn "\n----- Menu do administrador -----"
+    putStrLn "\n----- Modo Administrador -----"
     putStrLn "1) Filmes"
     putStrLn "2) Sessões"
     putStrLn "3) Clientes"
@@ -102,7 +101,7 @@ casosAdmin input sistemaRef = case input of
 
 menuFilmes :: IORef Sistema -> IO ()
 menuFilmes sistemaRef = do
-    putStrLn "----- Menu de filmes -----"
+    putStrLn "\n----- Gerenciar Filmes -----"
     putStrLn "1) Exibir filmes"
     putStrLn "2) Adicionar filme"
     putStrLn "3) Remover filme"
@@ -122,12 +121,12 @@ casosFilmes input sistemaRef = case input of
     "2" -> do
         menuAdicionarFilme sistemaRef
         menuFilmes sistemaRef
-  --  "3" -> do
-  --      removerFilme sistemaRef
-  --      menuFilmes sistemaRef
- --   "4" -> do
-  --      editarFilme sistemaRef
-  --      menuFilmes sistemaRef
+    "3" -> do
+        menuRemoverFilme sistemaRef
+        menuFilmes sistemaRef
+    "4" -> do
+        menuEditarFilme sistemaRef
+        menuFilmes sistemaRef
     "0" -> do
         menuAdmin sistemaRef
     _   -> do

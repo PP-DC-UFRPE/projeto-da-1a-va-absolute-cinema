@@ -122,8 +122,8 @@ salvarFilmes :: [Filme] -> IO ()
 salvarFilmes filmes = do
     let caminho = "./BaseDados/filmes.txt"
         conteudo = unlines $ map formatarFilme filmes
-    when (length conteudo > 0) $
-        writeFile caminho conteudo
+    writeFile caminho conteudo
+    
   where
     formatarFilme :: Filme -> String
     formatarFilme (Filme id titulo genero duracao sinopse) =
