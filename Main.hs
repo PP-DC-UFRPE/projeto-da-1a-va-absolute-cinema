@@ -6,6 +6,7 @@ import Dados
 import Compra_de_ingresso
 import Text.XHtml (menu)
 import Filmes
+import Sessoes (exibirSessoes, menuAdicionarSessao, menuRemoverSessao, menuEditarSessao)
 
 -- Função que inicializa o programa
 main :: IO ()
@@ -84,8 +85,8 @@ casosAdmin input sistemaRef = case input of
     
     "1" -> do
         menuFilmes sistemaRef
-   -- "2" -> do
-    --    menuSessoes sistemaRef
+    "2" -> do
+        menuSessoes sistemaRef
    -- "3" -> do
     --    menuClientes sistemaRef
    -- "4" -> do
@@ -132,4 +133,37 @@ casosFilmes input sistemaRef = case input of
     _   -> do
         putStrLn "Opção inválida!"
         menuFilmes sistemaRef
-    
+
+menuSessoes :: IORef Sistema -> IO ()
+menuSessoes sistemaRef = do
+    putStrLn "\n----- Gerenciar Sessões -----"
+    putStrLn "1) Exibir sessões"
+    putStrLn "2) Adicionar sessão"
+    putStrLn "3) Remover sessão"
+    putStrLn "4) Editar sessão"
+    putStrLn "0) Voltar"
+    putStr "Input: "
+    hFlush stdout
+    input <- getLine
+    putStrLn ""
+    casosSessoes input sistemaRef
+
+casosSessoes :: String -> IORef Sistema -> IO ()
+casosSessoes input sistemaRef = case input of
+    "1" -> do
+        exibirSessoes sistemaRef
+        menuSessoes sistemaRef
+    "2" -> do
+        menuAdicionarSessao sistemaRef
+        menuSessoes sistemaRef
+    "3" -> do
+        menuRemoverSessao sistemaRef
+        menuSessoes sistemaRef
+    "4" -> do
+        menuEditarSessao sistemaRef
+        menuSessoes sistemaRef
+    "0" -> do
+        menuAdmin sistemaRef
+    _   -> do
+        putStrLn "Opção inválida!"
+        menuSessoes sistemaRef

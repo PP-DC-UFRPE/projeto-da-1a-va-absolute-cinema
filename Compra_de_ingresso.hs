@@ -141,8 +141,7 @@ verificaAssentoDisponivel letra numAssento (Sessao _ _ _ _ _ _ _ assentos) =
 -- Visualiza ingressos comprados
 visualizarIngressos :: IORef Sistema -> IO ()
 visualizarIngressos sistemaRef = do
-    sistema <- readIORef sistemaRef
-    let pedidos = pegarPedidos sistema
+    pedidos <- pegarPedidos sistemaRef
     if null pedidos
         then putStrLn "Nenhum ingresso foi comprado ainda.\n"
         else do

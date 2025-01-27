@@ -9,7 +9,7 @@ import System.IO
 exibicao :: IORef Sistema -> IO ()
 exibicao sistemaRef = do
     sistema <- readIORef sistemaRef
-    putStrLn "Esses são os filmes disponíveis hoje:"
+    putStrLn "Esses são os filmes disponíveis:"
     printarFilmesESessoes sistema
     putStrLn ""
 

@@ -54,8 +54,15 @@ pegarFilmes sistemaRef = do
     (_, filmes, _, _) <- readIORef sistemaRef
     return filmes
 
-pegarPedidos :: Sistema -> [Pedido]
-pegarPedidos (_, _, _, pedidos) = pedidos
+pegarSessoes :: IORef Sistema -> IO [Sessao]
+pegarSessoes sistemaRef = do
+    (_, _, sessoes, _) <- readIORef sistemaRef
+    return sessoes
+
+pegarPedidos :: IORef Sistema -> IO [Pedido]
+pegarPedidos sistemaRef = do
+    (_, _, _, pedidos) <- readIORef sistemaRef
+    return pedidos
 
 -- Calcula o valor total dos ingressos
 calcularValor :: [Ingresso] -> Float
