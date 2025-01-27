@@ -19,35 +19,48 @@ split delim str =
 ---- Funções de Mapeamento dos objetos
 -- Função para carregar clientes de um arquivo
 parseCliente :: String -> Cliente
-parseCliente linha =
-    let partes = split ';' linha
-        nome = partes !! 0
-        cpf = partes !! 1
-        idade = read (partes !! 2) :: Int
-        ocupacaoStr = partes !! 3
+parseCliente linha = Cliente nome cpf idade ocupacao
+    where
+        [nome, cpf, idadeStr, ocupacaoStr] = split ';' linha
+        idade = read idadeStr
         ocupacao = case ocupacaoStr of
             "Estudante" -> Estudante
             "Professor" -> Professor
             "Outras"    -> Outras
-            _            -> error "Ocupação inválida no arquivo"
-    in Cliente nome cpf idade ocupacao
-
--- Função para mapear o campo de gêneros de um filme de uma string para uma lista de strings
--- Exemplo: "[Aventura,Ficção]" -> ["Aventura", "Ficção"]
-parseGenero :: String -> [String]
-parseGenero str = split ',' (filter (`notElem` "[]") str)
+            _           -> error "Ocupação inválida no arquivo"
 
 -- Função para mapear uma linha de texto em um objeto do tipo Filme
 -- Cada linha segue o formato: "Titulo;[Genero1,Genero2];Duracao;Sinopse"
 parseFilme :: String -> Filme
-parseFilme linha =
-    let partes = split ';' linha
-        id = read (head partes) :: Int
-        titulo = partes !! 1
-        genero = parseGenero (partes !! 2)
-        duracao = read (partes !! 3) :: Int
-        sinopse = partes !! 4
-    in Filme id titulo genero duracao sinopse
+parseFilme linha = Filme id titulo genero duracao sinopse
+    where
+        [idStr, titulo, generoStr, duracaoStr, sinopse] = split ';' linha
+        id = read idStr
+        genero = parseGenero generoStr
+        duracao = read duracaoStr
+
+        -- Função para mapear o campo de gêneros de um filme de uma string para uma lista de strings
+        -- Exemplo: "[Aventura,Ficção]" -> ["Aventura", "Ficção"]
+        parseGenero :: String -> [String]
+        parseGenero str = split ',' (filter (`notElem` "[]") str)
+
+-- Função para mapear uma linha de texto em uma Sessão
+-- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
+parseSessao :: [Filme] -> String -> Maybe Sessao
+parseSessao filmes linha =
+    case (filme, tipoSessao) of
+        (Just f, Just ts) -> Just $ Sessao id f horario dia ts is3D sala assentos
+        _ -> Nothing
+    where 
+        [idStr, titulo, horarioStr, diaStr, tipoStr, is3DStr, salaStr, assentosStr] = split ';' linha
+        id = read idStr
+        filme = find ((== titulo) . getTitulo) filmes
+        horario = parseHorario horarioStr
+        dia = parseDia diaStr
+        tipoSessao = readMaybe tipoStr
+        is3D = read is3DStr
+        sala = read salaStr
+        assentos = parseAssentos assentosStr
 
 -- Função para mapear uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros)
 parseHorario :: String -> Horario
@@ -76,61 +89,64 @@ agrupaAssentos [] = []
 agrupaAssentos (a:b:c:xs) = [a, b, c] : agrupaAssentos xs
 agrupaAssentos _ = error "Formato inválido de assento."
 
--- Função para mapear uma linha de texto em uma Sessão
--- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
-parseSessao :: [Filme] -> String -> Maybe Sessao
-parseSessao filmes linha =
-    let partes = split ';' linha
-        id = read (head partes) :: Int
-        titulo = partes !! 1
-        filme = find (\(Filme _ t _ _ _) -> t == titulo) filmes
-        horario = parseHorario $ partes !! 2
-        dia = parseDia $ partes !! 3
-        tipoSessao = readMaybe (partes !! 4) :: Maybe TipoSessao
-        is3D = read (partes !! 5) :: Bool
-        sala = read (partes !! 6) :: Int
-        assentos = parseAssentos $ partes !! 7
-    in case (filme, tipoSessao) of
-        (Just f, Just ts) -> Just $ Sessao id f horario dia ts is3D sala assentos
-        _ -> Nothing
-
 ---- Funções para carregar dados
 -- Função para carregar clientes de um arquivo
 carregarClientes :: FilePath -> IO [Cliente]
 carregarClientes caminho = do
-    conteudo <- readFile caminho
-    let linhas = lines conteudo
-    linhas `seq` return (map parseCliente linhas)
-
--- Função para carregar sessões de um arquivo e associá-las aos filmes correspondentes
-carregarSessoes :: FilePath -> [Filme] -> IO [Sessao]
-carregarSessoes caminho filmes = do
-    conteudo <- readFile caminho
-    let linhas = lines conteudo
-    return $ mapMaybe (parseSessao filmes) linhas
+    existe <- doesFileExist caminho
+    if not existe
+        then return []
+        else do
+            conteudo <- readFile caminho
+            return $ map parseCliente (lines conteudo)
 
 -- Função para carregar filmes de um arquivo de texto e convertê-los em uma lista de objetos Filme
 carregarFilmes :: FilePath -> IO [Filme]
 carregarFilmes caminho = do
-    conteudo <- readFile caminho
-    let linhas = lines conteudo
-    return $ map parseFilme linhas
+    existe <- doesFileExist caminho
+    if not existe
+        then return []
+        else do
+            conteudo <- readFile caminho
+            return $ map parseFilme (lines conteudo)
+
+-- Função para carregar sessões de um arquivo e associá-las aos filmes correspondentes
+carregarSessoes :: FilePath -> [Filme] -> IO [Sessao]
+carregarSessoes caminho filmes = do
+    existe <- doesFileExist caminho
+    if not existe
+        then return []
+        else do
+            conteudo <- readFile caminho
+            return $ mapMaybe (parseSessao filmes) (lines conteudo)
 
 ---- Funções para salvar dados em arquivo .txt
+-- Função para salvar clientes em um arquivo
+salvarClientes :: [Cliente] -> IO ()
+salvarClientes clientes = do
+    let caminho = "./BaseDados/clientes.txt"
+        conteudo = unlines $ map formatarCliente clientes
+    when (length conteudo > 0) $
+        writeFile caminho conteudo
+  where
+    formatarCliente :: Cliente -> String
+    formatarCliente (Cliente nome cpf idade ocupacao) =
+        nome ++ ";" ++ cpf ++ ";" ++ show idade ++ ";" ++ show ocupacao
+        
 -- Função para salvar filmes em um arquivo
 salvarFilmes :: [Filme] -> IO ()
 salvarFilmes filmes = do
     let caminho = "./BaseDados/filmes.txt"
         conteudo = unlines $ map formatarFilme filmes
-    writeFile caminho conteudo
-    
-  where
-    formatarFilme :: Filme -> String
-    formatarFilme (Filme id titulo genero duracao sinopse) =
-        show id ++ ";" ++ titulo ++ ";" ++ formatarGenero genero ++ ";" ++ show duracao ++ ";" ++ sinopse
+    when (length conteudo > 0) $
+        writeFile caminho conteudo
+    where
+        formatarFilme :: Filme -> String
+        formatarFilme (Filme id titulo genero duracao sinopse) =
+            show id ++ ";" ++ titulo ++ ";" ++ formatarGenero genero ++ ";" ++ show duracao ++ ";" ++ sinopse
 
-    formatarGenero :: Genero -> String
-    formatarGenero genero = "[" ++ unwords (map (\g -> g ++ ",") (init genero)) ++ last genero ++ "]"
+        formatarGenero :: Genero -> String
+        formatarGenero genero = "[" ++ unwords (map (\g -> g ++ ",") (init genero)) ++ last genero ++ "]"
 
 -- Função para salvar sessões em um arquivo
 salvarSessoes :: [Sessao] -> IO ()
@@ -139,18 +155,18 @@ salvarSessoes sessoes = do
         conteudo = unlines $ map formatarSessao sessoes
     when (length conteudo > 0) $
         writeFile caminho conteudo
-  where
-    formatarSessao :: Sessao -> String
-    formatarSessao (Sessao id (Filme _ titulo _ _ _) horario dia tipoSessao is3D sala assentos) =
-        show id ++ ";" ++ titulo ++ ";" ++ formatarHorario horario ++ ";" ++ formatarDia dia ++ ";"
-            ++ formatarTipo tipoSessao ++ ";" ++ show is3D ++ ";" ++ show sala ++ ";" ++ formatarAssentos assentos
-    -- Formata um único assento
-    formatarAssento :: Assento -> String
-    formatarAssento (fileira, numero, ocupado) =
-        "[" ++ [fileira] ++ "," ++ show numero ++ "," ++ show ocupado ++ "]"
-    -- Formata os assentos no formato esperado
-    formatarAssentos :: [Assento] -> String
-    formatarAssentos assentos = "[" ++ intercalate "," (map formatarAssento assentos) ++ "]"
+    where
+        formatarSessao :: Sessao -> String
+        formatarSessao (Sessao id (Filme _ titulo _ _ _) horario dia tipoSessao is3D sala assentos) =
+            show id ++ ";" ++ titulo ++ ";" ++ formatarHorario horario ++ ";" ++ formatarDia dia ++ ";"
+                ++ formatarTipo tipoSessao ++ ";" ++ show is3D ++ ";" ++ show sala ++ ";" ++ formatarAssentos assentos
+        -- Formata um único assento
+        formatarAssento :: Assento -> String
+        formatarAssento (fileira, numero, ocupado) =
+            "[" ++ [fileira] ++ "," ++ show numero ++ "," ++ show ocupado ++ "]"
+            -- Formata os assentos no formato esperado
+        formatarAssentos :: [Assento] -> String
+        formatarAssentos assentos = "[" ++ intercalate "," (map formatarAssento assentos) ++ "]"
 
 -- Formata o horário no formato HH:MM
 formatarHorario :: Horario -> String
@@ -166,17 +182,6 @@ formatarDia (d, m, a) =
 formatarTipo :: TipoSessao -> String
 formatarTipo Dublado = "Dublado"
 formatarTipo Legendado = "Legendado"
-
--- Função para salvar clientes em um arquivo
-salvarClientes :: [Cliente] -> IO ()
-salvarClientes clientes = do
-    let caminho = "./BaseDados/clientes.txt"
-        conteudo = unlines $ map formatarCliente clientes
-    writeFile caminho conteudo
-  where
-    formatarCliente :: Cliente -> String
-    formatarCliente (Cliente nome cpf idade ocupacao) =
-        nome ++ ";" ++ cpf ++ ";" ++ show idade ++ ";" ++ show ocupacao
 
 -- Atualizar a função salvarSistema para usar as funções acima
 salvarSistema :: IORef Sistema -> IO ()
@@ -194,7 +199,7 @@ inicialSistema = do
     clientes <- carregarClientes "./BaseDados/clientes.txt"
     filmes <- carregarFilmes "./BaseDados/filmes.txt"
     sessoes <- carregarSessoes "./BaseDados/sessoes.txt" filmes
-    return ([], filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
+    return (clientes, filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
 
 -- Função para criar um sistema com IORef para manipulação do estado
 iniciarSistema :: IO (IORef Sistema)
