@@ -2,8 +2,10 @@
 {-# HLINT ignore "Use infix" #-}
 
 module Sessoes where
+
 import Tipos
 import Dados
+import Utils (formatarTipo, formatarHorario, formatarDia)
 import Data.IORef
 import System.IO
 
