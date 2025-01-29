@@ -1,13 +1,11 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use infix" #-}
+
 module Sessoes where
 import Tipos
 import Dados
 import Data.IORef
-import Data.Traversable (for)
 import System.IO
-import Distribution.Compat.CharParsing (CharParsing(string))
-import Text.XHtml (menu)
 
 printarSessao :: Sessao -> IO ()
 printarSessao (Sessao id filme horario dia tipo is3d sala assentos) = do

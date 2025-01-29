@@ -1,12 +1,13 @@
 module Main where
+
 import Tipos
 import Data.IORef
-import System.IO
 import Dados
 import Compra_de_ingresso
-import Text.XHtml (menu)
 import Filmes
 import Sessoes (exibirSessoes, menuAdicionarSessao, menuRemoverSessao, menuEditarSessao)
+import System.IO (hFlush, stdout)
+
 
 -- Função que inicializa o programa
 main :: IO ()

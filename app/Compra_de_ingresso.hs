@@ -1,4 +1,5 @@
 module Compra_de_ingresso where
+    
 import Tipos
 import System.IO
 import Data.IORef

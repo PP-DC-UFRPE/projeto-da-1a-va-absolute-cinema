@@ -1,8 +1,8 @@
 module Filmes where
+
 import Tipos
 import Dados
 import Data.IORef
-import Data.Traversable (for)
 import System.IO
 
 -- Exibe os filmes disponíveis e suas sessões
