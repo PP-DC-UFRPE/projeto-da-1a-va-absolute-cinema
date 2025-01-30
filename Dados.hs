@@ -124,7 +124,7 @@ carregarSessoes caminho filmes = do
 -- Função para salvar clientes em um arquivo
 salvarClientes :: [Cliente] -> IO ()
 salvarClientes clientes = do
-    let caminho = "./BaseDados/clientes.txt"
+    let caminho = "./BancoDados/clientes.txt"
         conteudo = unlines $ map formatarCliente clientes
     writeFile caminho conteudo
   where
@@ -135,7 +135,7 @@ salvarClientes clientes = do
 -- Função para salvar filmes em um arquivo
 salvarFilmes :: [Filme] -> IO ()
 salvarFilmes filmes = do
-    let caminho = "./BaseDados/filmes.txt"
+    let caminho = "./BancoDados/filmes.txt"
         conteudo = unlines $ map formatarFilme filmes
     writeFile caminho conteudo
     where
@@ -149,7 +149,7 @@ salvarFilmes filmes = do
 -- Função para salvar sessões em um arquivo
 salvarSessoes :: [Sessao] -> IO ()
 salvarSessoes sessoes = do
-    let caminho = "./BaseDados/sessoes.txt"
+    let caminho = "./BancoDados/sessoes.txt"
         conteudo = unlines $ map formatarSessao sessoes
     writeFile caminho conteudo
     where
@@ -193,9 +193,9 @@ salvarSistema sistemaRef = do
 ---- Função para inicializar o sistema carregando filmes e sessões
 inicialSistema :: IO Sistema
 inicialSistema = do
-    clientes <- carregarClientes "./BaseDados/clientes.txt"
-    filmes <- carregarFilmes "./BaseDados/filmes.txt"
-    sessoes <- carregarSessoes "./BaseDados/sessoes.txt" filmes
+    clientes <- carregarClientes "./BancoDados/clientes.txt"
+    filmes <- carregarFilmes "./BancoDados/filmes.txt"
+    sessoes <- carregarSessoes "./BancoDados/sessoes.txt" filmes
     return (clientes, filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
 
 -- Função para criar um sistema com IORef para manipulação do estado

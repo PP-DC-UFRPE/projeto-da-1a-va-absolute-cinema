@@ -2,7 +2,6 @@ module Tipos where
 import Data.List
 import Data.IORef
 import System.IO 
-import Control.Monad.RWS.Class (MonadState(put))
 
 -- Senha do administrador
 senhaAdmin :: String
