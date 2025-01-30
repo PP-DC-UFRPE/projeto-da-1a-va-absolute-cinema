@@ -7,6 +7,8 @@ import System.IO
 senhaAdmin :: String
 senhaAdmin = "admin123"
 
+type Id = Int
+
 type Nome = String
 type Cpf = String
 type Idade = Int
@@ -16,7 +18,6 @@ data Cliente = Cliente {getNome :: Nome, getCpf :: Cpf, getIdade :: Idade, getOc
 instance Eq Cliente where
     (Cliente _ cpf1 _ _) == (Cliente _ cpf2 _ _) = cpf1 == cpf2
 
-type Id = Int
 type Titulo = String
 type Genero = [String]
 type Duracao = Int -- Minutos

@@ -12,47 +12,6 @@ import Control.Monad (when)
 import System.IO (withFile, hGetContents, IOMode(ReadMode))
 import Control.Exception (evaluate)
 
----- Funções de Mapeamento dos objetos
--- Função para carregar clientes de um arquivo
-parseCliente :: String -> Cliente
-parseCliente linha = Cliente nome cpf idade ocupacao
-    where
-        [nome, cpf, idadeStr, ocupacaoStr] = split ';' linha
-        idade = read idadeStr
-        ocupacao = case ocupacaoStr of
-            "Estudante" -> Estudante
-            "Professor" -> Professor
-            "Outras"    -> Outras
-            _           -> error "Ocupação inválida no arquivo"
-
--- Função para mapear uma linha de texto em um objeto do tipo Filme
--- Cada linha segue o formato: "Titulo;[Genero1,Genero2];Duracao;Sinopse"
-parseFilme :: String -> Filme
-parseFilme linha = Filme id titulo genero duracao sinopse
-    where
-        [idStr, titulo, generoStr, duracaoStr, sinopse] = split ';' linha
-        id = read idStr
-        genero = parseGenero generoStr
-        duracao = read duracaoStr
-
--- Função para mapear uma linha de texto em uma Sessão
--- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
-parseSessao :: [Filme] -> String -> Maybe Sessao
-parseSessao filmes linha =
-    case (filme, tipoSessao) of
-        (Just f, Just ts) -> Just $ Sessao id f horario dia ts is3D sala assentos
-        _ -> Nothing
-    where 
-        [idStr, titulo, horarioStr, diaStr, tipoStr, is3DStr, salaStr, assentosStr] = split ';' linha
-        id = read idStr
-        filme = find ((== titulo) . getTitulo) filmes
-        horario = parseHorario horarioStr
-        dia = parseDia diaStr
-        tipoSessao = readMaybe tipoStr
-        is3D = read is3DStr
-        sala = read salaStr
-        assentos = parseAssentos assentosStr
-
 ---- Funções para carregar dados
 -- Função para carregar clientes de um arquivo
 carregarClientes :: FilePath -> IO [Cliente]
@@ -92,6 +51,17 @@ carregarSessoes caminho filmes = do
             evaluate (length sessoes)
             return sessoes
 
+carregarPedidos :: FilePath -> [Cliente] -> [Sessao] -> IO [Pedido]
+carregarPedidos caminho clientes sessoes = do
+    existe <- doesFileExist caminho
+    if not existe
+        then return []
+        else withFile caminho ReadMode $ \handle -> do
+            conteudo <- hGetContents handle
+            let pedidos = mapMaybe (parsePedido clientes sessoes) (lines conteudo)
+            evaluate (length pedidos)
+            return pedidos
+
 ---- Funções para salvar dados em arquivo .txt
 -- Função para salvar clientes em um arquivo
 salvarClientes :: [Cliente] -> IO ()
@@ -114,14 +84,22 @@ salvarSessoes sessoes = do
         conteudo = unlines $ map formatarSessao sessoes
     writeFile caminho conteudo
 
+-- Função para salvar pedidos em um arquivo
+salvarPedidos :: [Pedido] -> IO ()
+salvarPedidos pedidos = do
+    let caminho = "./BancoDados/pedidos.txt"
+        conteudo = unlines $ map formatarPedido pedidos
+    writeFile caminho conteudo
+
 -- Atualizar a função salvarSistema para usar as funções acima
 salvarSistema :: IORef Sistema -> IO ()
 salvarSistema sistemaRef = do
     sistema <- readIORef sistemaRef
-    let (clientes, filmes, sessoes, _) = sistema
+    let (clientes, filmes, sessoes, pedidos) = sistema
     salvarClientes clientes
     salvarFilmes filmes
     salvarSessoes sessoes
+    salvarPedidos pedidos
     putStrLn "Sistema salvo com sucesso!"
 
 ---- Função para inicializar o sistema carregando filmes e sessões
@@ -130,7 +108,8 @@ inicialSistema = do
     clientes <- carregarClientes "./BancoDados/clientes.txt"
     filmes <- carregarFilmes "./BancoDados/filmes.txt"
     sessoes <- carregarSessoes "./BancoDados/sessoes.txt" filmes
-    return (clientes, filmes, sessoes, []) -- Inicializa com listas vazias para Cliente e Pedido
+    pedidos <- carregarPedidos "./BancoDados/pedidos.txt" clientes sessoes
+    return (clientes, filmes, sessoes, pedidos) -- Inicializa com listas vazias para Cliente e Pedido
 
 -- Função para criar um sistema com IORef para manipulação do estado
 iniciarSistema :: IO (IORef Sistema)

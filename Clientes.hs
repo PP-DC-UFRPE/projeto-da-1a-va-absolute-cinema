@@ -5,7 +5,6 @@ import Dados
 import Data.IORef
 import System.IO
 import Data.Char (isDigit)
-
 import Data.Maybe (isJust)
 import Data.Type.Bool (Not)
 
