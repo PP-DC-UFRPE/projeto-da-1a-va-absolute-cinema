@@ -9,6 +9,8 @@ import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.List (intercalate)
 import Control.Monad (when)
+import System.IO (withFile, hGetContents, IOMode(ReadMode))
+import Control.Exception (evaluate)
 
 ---- Funções de Mapeamento dos objetos
 -- Função para carregar clientes de um arquivo
@@ -58,9 +60,12 @@ carregarClientes caminho = do
     existe <- doesFileExist caminho
     if not existe
         then return []
-        else do
-            conteudo <- readFile caminho
-            return $ map parseCliente (lines conteudo)
+        else withFile caminho ReadMode $ \handle -> do
+            conteudo <- hGetContents handle
+            let clientes = map parseCliente (lines conteudo)
+            -- Força a avaliação completa da lista de clientes
+            evaluate (length clientes)
+            return clientes
 
 -- Função para carregar filmes de um arquivo de texto e convertê-los em uma lista de objetos Filme
 carregarFilmes :: FilePath -> IO [Filme]
@@ -68,9 +73,12 @@ carregarFilmes caminho = do
     existe <- doesFileExist caminho
     if not existe
         then return []
-        else do
-            conteudo <- readFile caminho
-            return $ map parseFilme (lines conteudo)
+        else withFile caminho ReadMode $ \handle -> do
+            conteudo <- hGetContents handle
+            let filmes = map parseFilme (lines conteudo)
+            -- Força a avaliação completa da lista de clientes
+            evaluate (length filmes)
+            return filmes
 
 -- Função para carregar sessões de um arquivo e associá-las aos filmes correspondentes
 carregarSessoes :: FilePath -> [Filme] -> IO [Sessao]
@@ -78,9 +86,11 @@ carregarSessoes caminho filmes = do
     existe <- doesFileExist caminho
     if not existe
         then return []
-        else do
-            conteudo <- readFile caminho
-            return $ mapMaybe (parseSessao filmes) (lines conteudo)
+        else withFile caminho ReadMode $ \handle -> do
+            conteudo <- hGetContents handle
+            let sessoes = mapMaybe (parseSessao filmes) (lines conteudo)
+            evaluate (length sessoes)
+            return sessoes
 
 ---- Funções para salvar dados em arquivo .txt
 -- Função para salvar clientes em um arquivo
