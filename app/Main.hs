@@ -18,7 +18,7 @@ main = do
 loop :: IORef Sistema -> IO ()
 loop sistemaRef = do
     putStrLn "\n----- Menu Principal -----"
-    putStrLn "1) Exibir filmes disponíveis"
+    putStrLn "1) Exibir Sessões disponíveis"
     putStrLn "2) Cadastro de usuário"
     putStrLn "3) Comprar ingresso"
     putStrLn "4) Modo administrador"

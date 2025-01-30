@@ -2,6 +2,7 @@ module Tipos where
 import Data.List
 import Data.IORef
 import System.IO 
+import Control.Monad.RWS.Class (MonadState(put))
 
 -- Senha do administrador
 senhaAdmin :: String
@@ -83,25 +84,32 @@ pegarTitulo (Filme _ t _ _ _) = t
 pegarDuracao :: Filme -> Int
 pegarDuracao (Filme _ _ _ d _) = d
 
+-- Exibe gênero do filme como uma string formatada
+printarGenero :: Genero -> String
+printarGenero genero = '(' : unwords (map (++ ", ") (init genero)) ++ last genero ++ ")"
+
 -- Impressão de filmes e sessões
-printarTituloEDuracao :: Filme -> IO ()
-printarTituloEDuracao f = putStrLn ("Titulo: " ++ pegarTitulo f ++ " Duracao: " ++ show (pegarDuracao f))
+printarFilmeInfo :: Filme -> IO ()
+printarFilmeInfo f = do putStrLn $ "Titulo: " ++ pegarTitulo f ++ " " ++ printarGenero (getGenero f) ++ " - Duracao: " ++ show (pegarDuracao f) ++ " min"
+                        putStrLn $ "Sinopse: " ++ getSinopse f
 
 -- Exibe todos os filmes e suas respectivas sessões
 printarFilmesESessoes :: Sistema -> IO ()
 printarFilmesESessoes (_, filmes, sessoes, _) = do
     mapM_ (\filme -> do
-        printarTituloEDuracao filme
+        printarFilmeInfo filme
         printarSessoesPorFilme sessoes filme) filmes
 
 -- Exibe as sessões de um filme específico
 printarSessoesPorFilme :: [Sessao] -> Filme -> IO ()
-printarSessoesPorFilme sessoes filme =
+printarSessoesPorFilme sessoes filme = do
+    putStrLn "\nSessões disponíveis: "
     mapM_ (\(Sessao _ _ (h, m) (d, mo, a) t _ sala _) ->
-        putStrLn $ "  Sessao: " ++ show h ++ ":" ++ show m ++
-                   ", Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++
-                   ", " ++ show t ++ ", Sala " ++ show sala) 
+        putStrLn $ "  \nSessao: " ++ show h ++ ":" ++ show m ++
+                   " - " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++
+                   " - " ++ show t ++ " - Sala " ++ show sala) 
         (filter (\(Sessao _ f _ _ _ _ _ _) -> f == filme) sessoes)
+    putStrLn "________________________________________"
 
 
 -- Formata um assento para exibição com "Disponível" ou "Ocupado"

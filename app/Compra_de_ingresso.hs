@@ -47,7 +47,7 @@ compra sistemaRef = do
     if input == 's' then printarFilmesESessoes sistema else return ()
 
     -- Seleciona o filme a ser assistido
-    putStrLn "Qual filme você quer assistir?"
+    putStrLn "\nQual filme você quer assistir?"
     putStr "Digite o número (0 a n): "
     hFlush stdout
     input <- getLine
@@ -86,23 +86,23 @@ compra sistemaRef = do
         then do
             putStrLn "Assento disponível, prosseguindo"
             -- Processo de cadastro do cliente
-            putStrLn "Informe seus dados para cadastro:"
+            putStrLn "\nInforme seus dados para cadastro:"
             putStr "Nome: "
             hFlush stdout
             nome <- getLine
-            putStr "CPF: "
+            putStr "\nCPF: "
             hFlush stdout
             cpf <- getLine
-            putStr "Idade: "
+            putStr "\nIdade: "
             hFlush stdout
             idadeInput <- getLine
             let idade = read idadeInput :: Int
             if idade >= 18  -- Verifica se a idade é válida
                 then return ()  -- Continua se a idade for válida
-                else putStrLn "Idade inválida."
+                else putStrLn "\nIdade inválida."
             
             -- Coleta ocupação do cliente
-            putStrLn "Ocupação: (1 - Estudante, 2 - Professor, 3 - Outras)"
+            putStrLn "\nOcupação: (1 - Estudante, 2 - Professor, 3 - Outras)"
             putStr "Escolha: "
             hFlush stdout
             ocupInput <- getLine
@@ -113,7 +113,7 @@ compra sistemaRef = do
             let cliente = Cliente nome cpf idade ocupacao
 
             -- Determina o tipo de ingresso
-            putStrLn "Tipo de ingresso: (1 - Inteira, 2 - Meia)"
+            putStrLn "\nTipo de ingresso: (1 - Inteira, 2 - Meia)"
             putStr "Escolha: "
             hFlush stdout
             ingressoInput <- getLine
@@ -131,7 +131,7 @@ compra sistemaRef = do
                 novoSistema = (clientes ++ [cliente], filmes, novasSessoes, pedidos ++ [pedido])
 
             writeIORef sistemaRef novoSistema
-            putStrLn "Compra finalizada! Ingresso gerado com sucesso."
+            putStrLn "\nCompra finalizada! Ingresso gerado com sucesso."
         else putStrLn "Assento ocupado! Tente outro assento."
 
 -- Verifica se o assento está disponível

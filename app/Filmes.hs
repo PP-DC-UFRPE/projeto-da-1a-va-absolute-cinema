@@ -13,15 +13,11 @@ exibicao sistemaRef = do
     printarFilmesESessoes sistema
     putStrLn ""
 
--- Formata o gênero do filme para exibição
-formatarGenero :: Genero -> String
-formatarGenero genero = '[' : unwords (map (++ ", ") (init genero)) ++ last genero ++ "]"
-
 -- Formata um filme para exibição
 printarFilme :: Filme -> IO ()
 printarFilme (Filme id titulo genero duracao sinopse) = do
     putStrLn $ "ID: " ++ show id ++ " - " ++ titulo
-    putStrLn $ "Gênero: " ++ formatarGenero genero
+    putStrLn $ "Gênero: " ++ printarGenero genero
     putStrLn $ "Duração: " ++ show duracao ++ " minutos"
     putStrLn $ "Sinopse: " ++ sinopse
     putStrLn "________________________________________________________"
