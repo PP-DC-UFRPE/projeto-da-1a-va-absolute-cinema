@@ -19,7 +19,7 @@ executable projeto-da-1a-va-absolute-cinema
     import:           warnings
     main-is:          Main.hs
     -- other-modules:
-    other-modules: Dados, Filmes, Tipos, Sessoes, Utils, Compra_de_ingresso, Exibir_filmes
+    other-modules: Clientes, Dados, Filmes, Tipos, Sessoes, Compra_de_ingresso, Exibir_filmes
     -- other-extensions:
     build-depends:    base ^>=4.17.2.1, aeson, directory
     hs-source-dirs:   app

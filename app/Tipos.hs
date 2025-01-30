@@ -1,8 +1,7 @@
 module Tipos where
-    
 import Data.List
 import Data.IORef
-import System.IO()
+import System.IO 
 
 -- Senha do administrador
 senhaAdmin :: String
@@ -49,6 +48,11 @@ instance Eq Pedido where
 type Sistema = ([Cliente],[Filme],[Sessao],[Pedido])
 
 -- Funções auxiliares para manipular dados e exibir informações
+
+pegarClientes :: IORef Sistema -> IO [Cliente]
+pegarClientes sistemaRef = do
+    (clientes, _, _, _) <- readIORef sistemaRef
+    return clientes
 
 pegarFilmes :: IORef Sistema -> IO [Filme]
 pegarFilmes sistemaRef = do
@@ -99,9 +103,10 @@ printarSessoesPorFilme sessoes filme =
                    ", " ++ show t ++ ", Sala " ++ show sala) 
         (filter (\(Sessao _ f _ _ _ _ _ _) -> f == filme) sessoes)
 
+
 -- Formata um assento para exibição com "Disponível" ou "Ocupado"
-formatarExibirAssento :: Assento -> String
-formatarExibirAssento (letra, numero, ocupado) =
+formatarAssento :: Assento -> String
+formatarAssento (letra, numero, ocupado) =
     let status = if ocupado then "Ocupado" else "Disponível"
     in "(" ++ [letra] ++ show numero ++ ", " ++ status ++ ")"
 
@@ -113,7 +118,7 @@ printarAssentosPorNumeroSessao salaNum sessoes = do
         [] -> putStrLn "Sala não encontrada!"
         (Sessao _ _ _ (d, mo, a) _ _ _ assentos : _) -> do
             putStrLn $ "Assentos disponíveis na sala (Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++ "):"
-            mapM_ (putStrLn . formatarExibirAssento) assentos
+            mapM_ (putStrLn . formatarAssento) assentos
 
 -- Printa assentos das sessões
 printarAssentosDasSessoes :: [Sessao] -> IO ()

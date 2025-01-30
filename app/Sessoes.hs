@@ -2,11 +2,10 @@
 {-# HLINT ignore "Use infix" #-}
 
 module Sessoes where
-
 import Tipos
 import Dados
-import Utils (formatarTipo, formatarHorario, formatarDia)
 import Data.IORef
+import Data.Traversable (for)
 import System.IO
 
 printarSessao :: Sessao -> IO ()
@@ -29,24 +28,24 @@ buscarSessao id (s:ss) = if getIdSessao s == id then Just s else buscarSessao id
 
 adicionarSessao :: Sessao -> IORef Sistema -> IO ()
 adicionarSessao sessao sistemaRef = do
-    (usuarios, filmes, sessoes, pedidos) <- readIORef sistemaRef
-    writeIORef sistemaRef (usuarios, filmes, sessao:sessoes, pedidos)
+    (clientes, filmes, sessoes, pedidos) <- readIORef sistemaRef
+    writeIORef sistemaRef (clientes, filmes, sessao:sessoes, pedidos)
 
 removerSessao :: Id -> IORef Sistema -> IO ()
 removerSessao id sistemaRef = do
-    (usuarios, filmes, sessoes, pedidos) <- readIORef sistemaRef
+    (clientes, filmes, sessoes, pedidos) <- readIORef sistemaRef
     let sessoesAtualizadas = filter (\s -> getIdSessao s /= id) sessoes
     if length sessoesAtualizadas == length sessoes
         then putStrLn "\nSessão não encontrada"
         else do 
             putStrLn "\nSessão removida com sucesso"
-            writeIORef sistemaRef (usuarios, filmes, sessoesAtualizadas, pedidos)
+            writeIORef sistemaRef (clientes, filmes, sessoesAtualizadas, pedidos)
 
 editarSessao :: Sessao -> IORef Sistema -> IO ()
 editarSessao sessao sistemaRef = do
-    (usuarios, filmes, sessoes, pedidos) <- readIORef sistemaRef
+    (clientes, filmes, sessoes, pedidos) <- readIORef sistemaRef
     let sessoesAtualizadas = map (\s -> if getIdSessao s == getIdSessao sessao then sessao else s) sessoes
-    writeIORef sistemaRef (usuarios, filmes, sessoesAtualizadas, pedidos)
+    writeIORef sistemaRef (clientes, filmes, sessoesAtualizadas, pedidos)
     putStrLn "\nSessao editada com sucesso"
 
 gerarIdSessao :: [Sessao] -> Id

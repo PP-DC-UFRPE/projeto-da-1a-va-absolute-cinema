@@ -1,8 +1,8 @@
 module Filmes where
-
 import Tipos
 import Dados
 import Data.IORef
+import Data.Traversable (for)
 import System.IO
 
 -- Exibe os filmes disponíveis e suas sessões
@@ -46,24 +46,24 @@ buscarFilme id (f:fs) = if getIdFilme f == id then Just f else buscarFilme id fs
 
 adicionarFilme :: Filme -> IORef Sistema -> IO ()
 adicionarFilme filme sistemaRef = do
-    (usuarios, filmes, sessoes, pedidos) <- readIORef sistemaRef
-    writeIORef sistemaRef (usuarios, filme:filmes, sessoes, pedidos)
+    (clientes, filmes, sessoes, pedidos) <- readIORef sistemaRef
+    writeIORef sistemaRef (clientes, filme:filmes, sessoes, pedidos)
 
 removerFilme :: Id -> IORef Sistema -> IO ()
 removerFilme id sistemaRef = do
-    (usuarios, filmes, sessoes, pedidos) <- readIORef sistemaRef
+    (clientes, filmes, sessoes, pedidos) <- readIORef sistemaRef
     let filmesAtualizados = filter (\f-> getIdFilme f /= id) filmes
     if length filmesAtualizados == length filmes
         then putStrLn "Filme não encontrado"
         else do 
             putStrLn "Filme removido com sucesso"
-            writeIORef sistemaRef (usuarios, filmesAtualizados, sessoes, pedidos)
+            writeIORef sistemaRef (clientes, filmesAtualizados, sessoes, pedidos)
 
 editarFilme :: Filme -> IORef Sistema -> IO ()
 editarFilme filme sistemaRef = do
-    (usuarios, filmes, sessoes, pedidos) <- readIORef sistemaRef
+    (clientes, filmes, sessoes, pedidos) <- readIORef sistemaRef
     let filmesAtualizados = map (\f -> if getIdFilme f == getIdFilme filme then filme else f) filmes
-    writeIORef sistemaRef (usuarios, filmesAtualizados, sessoes, pedidos)
+    writeIORef sistemaRef (clientes, filmesAtualizados, sessoes, pedidos)
     putStrLn "\nFilme editado com sucesso"
 
 --Menus de gerenciamento de filmes

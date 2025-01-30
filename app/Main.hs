@@ -1,12 +1,12 @@
 module Main where
-
 import Tipos
-import Dados
-import Filmes
-import Compra_de_ingresso
-import Sessoes (exibirSessoes, menuAdicionarSessao, menuRemoverSessao, menuEditarSessao)
 import Data.IORef
-import System.IO (hFlush, stdout)
+import System.IO
+import Dados
+import Compra_de_ingresso
+import Filmes
+import Sessoes (exibirSessoes, menuAdicionarSessao, menuRemoverSessao, menuEditarSessao)
+import Clientes (exibirClientes, menuCadastrarCliente, menuEditarCliente, menuRemoverCliente)
 
 -- Função que inicializa o programa
 main :: IO ()
@@ -87,8 +87,8 @@ casosAdmin input sistemaRef = case input of
         menuFilmes sistemaRef
     "2" -> do
         menuSessoes sistemaRef
-   -- "3" -> do
-    --    menuClientes sistemaRef
+    "3" -> do
+        menuClientes sistemaRef
    -- "4" -> do
     --    menuPedidos sistemaRef
    -- "5" -> do
@@ -167,3 +167,37 @@ casosSessoes input sistemaRef = case input of
     _   -> do
         putStrLn "Opção inválida!"
         menuSessoes sistemaRef
+
+menuClientes :: IORef Sistema -> IO ()
+menuClientes sistemaRef = do
+    putStrLn "\n----- Gerenciar Clientes -----"
+    putStrLn "1) Exibir clientes"
+    putStrLn "2) Adicionar cliente"
+    putStrLn "3) Remover cliente"
+    putStrLn "4) Editar cliente"
+    putStrLn "0) Voltar"
+    putStr "Input: "
+    hFlush stdout
+    input <- getLine
+    putStrLn ""
+    casosClientes input sistemaRef
+
+casosClientes :: String -> IORef Sistema -> IO ()
+casosClientes input sistemaRef = case input of
+    "1" -> do
+        exibirClientes sistemaRef
+        menuClientes sistemaRef
+    "2" -> do
+        menuCadastrarCliente sistemaRef
+        menuClientes sistemaRef
+    "3" -> do
+        menuRemoverCliente sistemaRef
+        menuClientes sistemaRef
+    "4" -> do
+        menuEditarCliente sistemaRef
+        menuClientes sistemaRef
+    "0" -> do
+        menuAdmin sistemaRef
+    _   -> do
+        putStrLn "Opção inválida!"
+        menuClientes sistemaRef

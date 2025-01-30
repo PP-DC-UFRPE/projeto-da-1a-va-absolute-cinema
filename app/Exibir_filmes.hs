@@ -1,5 +1,5 @@
-module Exibir_filmes (exibicao) where
-    
+module Exibir_filmes
+(exibicao) where
 import Tipos
 import Dados
 import Data.IORef
