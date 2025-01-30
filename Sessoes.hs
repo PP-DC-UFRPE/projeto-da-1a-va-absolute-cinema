@@ -4,6 +4,7 @@
 module Sessoes where
 import Tipos
 import Dados
+import Utils
 import Data.IORef
 import Data.Traversable (for)
 import System.IO

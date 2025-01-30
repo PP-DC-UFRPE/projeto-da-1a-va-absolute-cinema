@@ -112,8 +112,8 @@ printarSessoesPorFilme sessoes filme = do
 
 
 -- Formata um assento para exibição com "Disponível" ou "Ocupado"
-formatarAssento :: Assento -> String
-formatarAssento (letra, numero, ocupado) =
+formatarExibirAssento :: Assento -> String
+formatarExibirAssento (letra, numero, ocupado) =
     let status = if ocupado then "Ocupado" else "Disponível"
     in "(" ++ [letra] ++ show numero ++ ", " ++ status ++ ")"
 
@@ -125,7 +125,7 @@ printarAssentosPorNumeroSessao salaNum sessoes = do
         [] -> putStrLn "Sala não encontrada!"
         (Sessao _ _ _ (d, mo, a) _ _ _ assentos : _) -> do
             putStrLn $ "Assentos disponíveis na sala (Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++ "):"
-            mapM_ (putStrLn . formatarAssento) assentos
+            mapM_ (putStrLn . formatarExibirAssento) assentos
 
 -- Printa assentos das sessões
 printarAssentosDasSessoes :: [Sessao] -> IO ()
