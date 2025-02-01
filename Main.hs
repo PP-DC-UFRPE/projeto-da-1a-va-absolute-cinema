@@ -12,8 +12,35 @@ import Clientes (exibirClientes, menuCadastrarCliente, menuEditarCliente, menuRe
 main :: IO ()
 main = do
     sistemaRef <- iniciarSistema
-    loop sistemaRef
+    inicio sistemaRef
 
+inicio :: IORef Sistema -> IO ()
+inicio sistemaRef = do
+    putStrLn "\n##################  ABSOLUTE CINEMA  ################## "
+    putStrLn ""
+    putStrLn "Seja bem-vindo! Selecione uma das opções para continuar.\n"
+    putStrLn "1) Menu de serviços"
+    putStrLn "2) Modo administrador"
+    putStrLn "0) Sair"
+    putStr "Input: "
+    hFlush stdout
+    input <- getLine
+    putStrLn ""
+    casosInicio input sistemaRef
+
+casosInicio :: String -> IORef Sistema -> IO ()
+casosInicio input sistemaRef = case input of
+    "1" -> do
+        loop sistemaRef
+    "2" -> do    
+        loginAdmin sistemaRef  -- Entra no modo administrador
+    "0" -> do
+        salvarSistema sistemaRef
+        putStrLn "Saindo do programa"  -- Encerra o programa
+    _ -> do
+        putStrLn "Opção inválida"  -- Caso o usuário digite uma opção inválida
+        inicio sistemaRef
+        
 -- Loop principal do programa
 loop :: IORef Sistema -> IO ()
 loop sistemaRef = do
@@ -21,8 +48,7 @@ loop sistemaRef = do
     putStrLn "1) Exibir Sessões disponíveis"
     putStrLn "2) Cadastro de usuário"
     putStrLn "3) Comprar ingresso"
-    putStrLn "4) Modo administrador"
-    putStrLn "0) Sair"
+    putStrLn "4) Voltar"
     putStr "Input: "
     hFlush stdout
     input <- getLine
@@ -42,10 +68,7 @@ casos input sistemaRef = case input of
         salvarSistema sistemaRef
         loop sistemaRef
     "4" -> do
-        loginAdmin sistemaRef  -- Entra no modo administrador
-    "0" -> do
-        salvarSistema sistemaRef
-        putStrLn "Saindo do programa"  -- Encerra o programa
+        inicio sistemaRef -- Volta a tela inicial
     _   -> do
         putStrLn "Opção inválida"  -- Caso o usuário digite uma opção inválida
         loop sistemaRef
@@ -53,7 +76,7 @@ casos input sistemaRef = case input of
 loginAdmin :: IORef Sistema -> IO ()
 loginAdmin sistemaRef = do
     putStrLn "----- Acesso de administrador -----"
-    putStrLn "\nDigite a senha de administrador:"
+    putStrLn "\nDigite a senha de administrador"
     putStr "Senha: "
     hFlush stdout
     senha <- getLine
@@ -63,7 +86,7 @@ loginAdmin sistemaRef = do
             menuAdmin sistemaRef
         else do
             putStrLn "\nSenha incorreta!"
-            loop sistemaRef
+            inicio sistemaRef
 
 menuAdmin :: IORef Sistema -> IO ()
 menuAdmin sistemaRef = do
