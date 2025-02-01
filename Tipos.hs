@@ -27,7 +27,7 @@ data Filme = Filme {getIdFilme :: Id, getTitulo :: Titulo, getGenero :: Genero, 
 instance Eq Filme where
     (Filme id1 t1 _ _ _) == (Filme id2 t2 _ _ _) = id1 == id2 && t1 == t2
 
-type Horario = (Int, Int) -- Hora/Minuto
+type Horario = (Int, Int)-- Hora/Minuto
 type Dia = (Int, Int, Int) -- Dia/Mes/Ano
 data TipoSessao = Dublado | Legendado deriving (Show, Read)
 type Is3D = Bool

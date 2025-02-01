@@ -8,6 +8,7 @@ import Utils
 import Data.IORef
 import Data.Traversable (for)
 import System.IO
+import Distribution.Compat.Prelude (readMaybe)
 
 printarSessao :: Sessao -> IO ()
 printarSessao (Sessao id filme horario dia tipo is3d sala assentos) = do
@@ -15,7 +16,7 @@ printarSessao (Sessao id filme horario dia tipo is3d sala assentos) = do
     putStrLn $ formatarTipo tipo ++ " - " ++ (if is3d then "3D" else "Normal") ++ " - Sala " ++ show sala
     putStrLn $ "Horario: " ++ formatarHorario horario ++ " | Data: " ++ formatarDia dia
     putStrLn "________________________________________________________"
-    
+
 exibirSessoes :: IORef Sistema -> IO ()
 exibirSessoes sistemaRef = do
     sessoes <- pegarSessoes sistemaRef
@@ -38,7 +39,7 @@ removerSessao id sistemaRef = do
     let sessoesAtualizadas = filter (\s -> getIdSessao s /= id) sessoes
     if length sessoesAtualizadas == length sessoes
         then putStrLn "\nSessão não encontrada"
-        else do 
+        else do
             putStrLn "\nSessão removida com sucesso"
             writeIORef sistemaRef (clientes, filmes, sessoesAtualizadas, pedidos)
 
@@ -61,11 +62,119 @@ gerarAssentos = do
     assentos <- [1..10]
     return (fileiras, assentos, False)
 
+--gerarFileira :: 
+
+--gerarMatrizAssentos :: [Assento] -> IO ()
+--gerarMatrizAssentos assentos = do
+--    putStrLn "  1  2  3  4  5  6  7  8  9  10"
+
+
 stringToHorario :: String -> Horario
 stringToHorario str = (read (take 2 str), read (drop 3 str))
 
 stringToDia :: String -> Dia
 stringToDia str = (read (take 2 str), read (take 2 (drop 3 str)), read (drop 6 str))
+
+inputHora :: IO Int
+inputHora = do
+    putStr "\nHH: "
+    hFlush stdout
+    iptHora <- getLine
+    case validarIptHora iptHora of
+        Right hora -> return hora
+        Left erro -> do
+            putStrLn erro
+            inputHora
+
+validarIptHora :: String -> Either String Int
+validarIptHora input = do
+    let ipt = readMaybe input :: Maybe Int
+    case ipt of
+        Just i | i <= 23 && i >= 0 -> Right i
+        Just _ -> Left "\nHora inválida: deve estar entre 0 e 23."
+        Nothing -> Left "\nInput inválido: digite um valor inteiro entre 0 e 23."
+
+inputMinuto :: IO Int
+inputMinuto = do
+    putStr "\nMM: "
+    hFlush stdout
+    iptMinuto <- getLine
+    case validarIptMinuto iptMinuto of
+        Right minuto -> return minuto
+        Left erro -> do
+            putStrLn erro
+            inputMinuto
+
+validarIptMinuto :: String -> Either String Int
+validarIptMinuto input = do
+    let ipt = readMaybe input :: Maybe Int
+    case ipt of
+        Just i | i <= 59 && i >= 0 -> Right i
+        Just _ -> Left "\nMinuto inválido: deve estar entre 0 e 59."
+        Nothing -> Left "\nInput inválido: digite um valor inteiro entre 0 e 59."
+
+inputDia :: IO Int
+inputDia = do
+    putStr "\nDia: "
+    hFlush stdout
+    iptDia <- getLine
+    case validarIptDia iptDia of
+        Right dia -> return dia
+        Left erro -> do
+            putStrLn erro
+            inputDia
+
+validarIptDia :: String -> Either String Int
+validarIptDia input = do
+    let ipt = readMaybe input :: Maybe Int
+    case ipt of
+        Just i | i <= 31 && i >= 1 -> Right i
+        Just _ -> Left "\nDia inválido: deve estar entre 1 e 31."
+        Nothing -> Left "\nInput inválido: digite um valor inteiro entre 1 e 31."
+
+inputMes :: IO Int
+inputMes = do
+    putStr "\nMês: "
+    hFlush stdout
+    iptMes <- getLine
+    case validarIptMes iptMes of
+        Right mes -> return mes
+        Left erro -> do
+            putStrLn erro
+            inputMes
+
+validarIptMes :: String -> Either String Int
+validarIptMes input = do
+    let ipt = readMaybe input :: Maybe Int
+    case ipt of
+        Just i | i <= 12 && i >= 1 -> Right i
+        Just _ -> Left "\nMês inválido: deve estar entre 1 e 12."
+        Nothing -> Left "\nInput inválido: digite um valor inteiro entre 1 e 12."
+
+inputAno :: IO Int
+inputAno = do
+    putStr "\nAno: "
+    hFlush stdout
+    iptAno <- getLine
+    case validarIptAno iptAno of
+        Right ano -> return ano
+        Left erro -> do
+            putStrLn erro
+            inputAno
+
+validarIptAno :: String -> Either String Int
+validarIptAno input = do
+    let ipt = readMaybe input :: Maybe Int
+    case ipt of
+        Just i | i > 2024 -> Right i
+        Just _ -> Left "\nAno inválido: deve ser maior que 2024."
+        Nothing -> Left "\nInput inválido: digite um valor inteiro maior que 2024."
+
+validarSessao :: Sessao -> [Sessao] -> Either String Sessao
+validarSessao sessao sessoes = 
+    if any (\s -> getHorario s == getHorario sessao && getDia s == getDia sessao && getSala s == getSala sessao) sessoes
+        then Left "\nConflito: já existe uma sessão no mesmo horário, dia e sala."
+        else Right sessao
 
 menuAdicionarSessao :: IORef Sistema -> IO ()
 menuAdicionarSessao sistemaRef = do
@@ -84,14 +193,17 @@ menuAdicionarSessao sistemaRef = do
     else do
         let filme = filmes !! read inputFilme
         putStrLn $ "Selecionado: " ++ pegarTitulo filme
-        putStr "\nHorário (HH:MM): "
-        hFlush stdout
-        inputHorario <- getLine
-        let horario = stringToHorario inputHorario
-        putStr "Data (DD/MM/AAAA): "
-        hFlush stdout
-        inputDia <- getLine
-        let dia = stringToDia inputDia
+        putStrLn "\nHorário (HH:MM)"
+        hh <- inputHora
+        mm <- inputMinuto
+        let horario = (hh, mm)
+
+        putStrLn "\nData (DD/MM/AAAA)"
+        dd <- inputDia
+        mm <- inputMes
+        aaaa <- inputAno
+        let dia = (dd, mm, aaaa)
+
         putStrLn "\nTipo de sessão:"
         putStrLn "1) Dublado"
         putStrLn "2) Legendado"
@@ -102,6 +214,7 @@ menuAdicionarSessao sistemaRef = do
                 "1" -> Dublado
                 "2" -> Legendado
                 _ -> Dublado
+
         putStrLn "\n3D?"
         putStrLn "1) Sim"
         putStrLn "2) Não"
@@ -109,14 +222,19 @@ menuAdicionarSessao sistemaRef = do
         hFlush stdout
         input3D <- getLine
         let is3d = input3D == "1"
+
         putStr "\nSala: "
         hFlush stdout
         inputSala <- getLine
         let sala = read inputSala
+
         let assentos = gerarAssentos
-            sessao = Sessao (gerarIdSessao sessoes) filme horario dia tipo is3d sala assentos
-        adicionarSessao sessao sistemaRef
-        putStrLn "\nSessao adicionada com sucesso!"
+        let sessao = Sessao (gerarIdSessao sessoes) filme horario dia tipo is3d sala assentos
+        case validarSessao sessao sessoes of
+            Right sessao -> do 
+                adicionarSessao sessao sistemaRef
+                putStrLn "\nSessao adicionada com sucesso!"
+            Left erro -> putStrLn erro
         putStrLn ""
 
 menuRemoverSessao :: IORef Sistema -> IO ()
@@ -177,5 +295,4 @@ menuEditarSessao sistemaRef = do
             let sala = read inputSala :: Int
             let sessaoAtualizada = Sessao id (getFilme s) horario dia tipo is3d sala (getAssentos s)
             editarSessao sessaoAtualizada sistemaRef
-            
-            
+
