@@ -40,12 +40,12 @@ parseFilme linha = Filme id titulo genero duracao sinopse
 parseSessao :: [Filme] -> String -> Maybe Sessao
 parseSessao filmes linha =
     case (filme, tipoSessao) of
-        (Just f, Just ts) -> Just $ Sessao id f horario dia ts is3D sala assentos
+        (Just f, Just ts) -> do Just $ Sessao id f horario dia ts is3D sala assentos
         _ -> Nothing
     where 
         [idStr, titulo, horarioStr, diaStr, tipoStr, is3DStr, salaStr, assentosStr] = split ';' linha
         id = read idStr
-        filme = find ((== titulo) . getTitulo) filmes
+        filme = find ((== read titulo) . getIdFilme) filmes
         horario = parseHorario horarioStr
         dia = parseDia diaStr
         tipoSessao = readMaybe tipoStr

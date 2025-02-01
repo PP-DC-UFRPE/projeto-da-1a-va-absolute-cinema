@@ -48,7 +48,7 @@ loop sistemaRef = do
     putStrLn "1) Exibir Sessões disponíveis"
     putStrLn "2) Cadastro de usuário"
     putStrLn "3) Comprar ingresso"
-    putStrLn "4) Voltar"
+    putStrLn "0) Voltar"
     putStr "Input: "
     hFlush stdout
     input <- getLine
@@ -67,7 +67,7 @@ casos input sistemaRef = case input of
         compra sistemaRef  -- compra de ingresso
         salvarSistema sistemaRef
         loop sistemaRef
-    "4" -> do
+    "0" -> do
         inicio sistemaRef -- Volta a tela inicial
     _   -> do
         putStrLn "Opção inválida"  -- Caso o usuário digite uma opção inválida
