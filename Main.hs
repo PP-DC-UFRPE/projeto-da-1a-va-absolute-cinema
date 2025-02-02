@@ -7,6 +7,8 @@ import Compra_de_ingresso
 import Filmes
 import Sessoes (exibirSessoes, menuAdicionarSessao, menuRemoverSessao, menuEditarSessao)
 import Clientes (exibirClientes, menuCadastrarCliente, menuEditarCliente, menuRemoverCliente)
+import Pedidos
+import Control.Monad.RWS.Class (MonadState(put))
 
 -- Função que inicializa o programa
 main :: IO ()
@@ -112,8 +114,8 @@ casosAdmin input sistemaRef = case input of
         menuSessoes sistemaRef
     "3" -> do
         menuClientes sistemaRef
-   -- "4" -> do
-    --    menuPedidos sistemaRef
+    "4" -> do
+        menuPedidos sistemaRef
    -- "5" -> do
     --    menuRelatorios sistemaRef
     "0" -> do
@@ -224,3 +226,29 @@ casosClientes input sistemaRef = case input of
     _   -> do
         putStrLn "Opção inválida!"
         menuClientes sistemaRef
+
+menuPedidos :: IORef Sistema -> IO ()
+menuPedidos sistemaRef = do
+    putStrLn "\n----- Gerenciar Pedidos -----"
+    putStrLn "1) Exibir pedidos"
+    putStrLn "2) Remover pedido"
+    putStrLn "0) Voltar"
+    putStr "Input: "
+    hFlush stdout
+    input <- getLine
+    putStrLn ""
+    casosPedidos input sistemaRef
+
+casosPedidos :: String -> IORef Sistema -> IO ()
+casosPedidos input sistemaRef = case input of
+    "1" -> do
+        exibirTodosPedidos sistemaRef
+        menuPedidos sistemaRef
+    "2" -> do
+        menuRemoverPedido sistemaRef
+        menuPedidos sistemaRef
+    "0" -> do
+        menuAdmin sistemaRef
+    _   -> do
+        putStrLn "Opção inválida!"
+        menuPedidos sistemaRef

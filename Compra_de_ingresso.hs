@@ -3,34 +3,7 @@ module Compra_de_ingresso where
 import Tipos
 import System.IO
 import Data.IORef
-
-gerarIdPedido :: [Pedido] -> Id
-gerarIdPedido pedidos = 
-    if null pedidos 
-        then 1 
-        else maximum (map getIdPedido pedidos) + 1
-
--- Funções relacionadas à compra de ingressos
-
--- Exibe os ingressos
-exibirPedido :: Pedido -> IO ()
-exibirPedido (Ped _ (Cliente nome cpf _ _) (Sessao _ (Filme _ titulo _ _ _) (h, m) (d, mo, a) tipo _ sala _) ingressos valor) = do
-    putStrLn $ "Cliente: " ++ nome ++ " (CPF: " ++ cpf ++ ")"
-    putStrLn $ "Filme: " ++ titulo
-    putStrLn $ "Horário: " ++ show h ++ ":" ++ show m ++
-               " | Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a
-    putStrLn $ "Sala: " ++ show sala ++ " | Sessão: " ++ show tipo
-    putStrLn $ "Ingressos: " ++ show (length ingressos) ++ " - Valor total: R$ " ++ show valor
-    mapM_ exibirIngresso ingressos
-    putStrLn "--------------------------------"
-
-exibirIngresso :: Ingresso -> IO ()
-exibirIngresso (tipo, (letra, num, _)) = do
-    putStrLn $ "  Assento: " ++ [letra] ++ show num ++ " | " ++ tipoToString tipo
-
-tipoToString :: TipoIngresso -> String
-tipoToString (Inteira v) = "Inteira - R$ " ++ show v
-tipoToString Meia        = "Meia - R$ 10.00"
+import Pedidos (exibirPedido, gerarIdPedido)
 
 -- Processo de compra de ingresso
 compra :: IORef Sistema -> IO ()

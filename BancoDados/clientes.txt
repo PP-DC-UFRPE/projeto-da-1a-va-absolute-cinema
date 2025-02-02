@@ -3,3 +3,5 @@ Alan T;12345678910;20;Estudante
 Alan;09223068428;23;Estudante
 Marcos Silva;09223068428;34;Professor
 A;8566;32;Professor
+Gabriel;6312125;23;Estudante
+Joana;5237234;28;Professor
