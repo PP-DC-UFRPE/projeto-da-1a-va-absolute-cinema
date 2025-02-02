@@ -1,4 +1,2 @@
-5;filme3;[A��o];24;sinopse3
 4;Senhor dos Anéis: A Sociedade do Anel;[Aventura,Fantasia];200;Em uma terra fantástica e única, um hobbit recebe de presente de seu tio um anel mágico e maligno que precisa ser destruído antes que caia nas mãos do mal. Para isso, o hobbit Frodo tem um caminho árduo pela frente, onde encontra perigo, medo e seres bizarros. Ao seu lado para o cumprimento desta jornada, ele aos poucos pode contar com outros hobbits, um elfo, um anão, dois humanos e um mago, totalizando nove seres que formam a Sociedade do Anel.
 3;Vingadores: Ultimato;[Ação,Sci-Fi];160;Após Thanos eliminar metade das criaturas vivas, os Vingadores têm de lidar com a perda de amigos e entes queridos. Com Tony Stark vagando perdido no espaço sem água e comida, Steve Rogers e Natasha Romanov lideram a resistência contra o titã louco.
-1;Smurfs;[Aventura,Ação];112;testando
