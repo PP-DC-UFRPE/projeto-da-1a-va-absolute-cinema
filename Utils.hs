@@ -75,13 +75,13 @@ parseGenero str = split ',' (filter (`notElem` "[]") str)
 -- Função para mapear uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros)
 parseHorario :: String -> Horario
 parseHorario str =
-    let [h, m] = map read $ split ':' str
+    let [h, m] = [read x | x <- split ':' str]
     in (h, m)
 
 -- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (tupla de inteiros)
 parseDia :: String -> Dia
 parseDia str =
-    let [d, m, a] = map read $ split '/' str
+    let [d, m, a] = [read x | x <- split '/' str]
     in (d, m, a)
 
 -- Função para mapear uma string de assentos para uma lista de Assentos
@@ -104,7 +104,7 @@ parseIngressos :: String -> Maybe [Ingresso]
 parseIngressos str = 
     let cleanStr = filter (`notElem` "[]") str
         ingressosStrs = split ';' cleanStr
-    in sequence (map parseIngresso ingressosStrs)
+    in sequence [ parseIngresso s | s <- ingressosStrs ]
 
 -- Função para mapear uma string em um Ingresso
 parseIngresso :: String -> Maybe Ingresso
@@ -121,8 +121,8 @@ parseTipoIngresso :: String -> Maybe TipoIngresso
 parseTipoIngresso s =
     case words s of
         ["Inteira", v] -> case readMaybe v of
-                            Just f -> Just (Inteira f)
-                            _ -> Nothing
+            Just f -> Just (Inteira f)
+            _ -> Nothing
         ["Meia"] -> Just Meia
         _ -> Nothing
 
@@ -149,7 +149,7 @@ formatarFilme (Filme id titulo genero duracao sinopse) =
 
 -- Formata o genero no formato [Ação, Drama]
 formatarGenero :: Genero -> String
-formatarGenero genero = "[" ++ unwords (map (\g -> g ++ ",") (init genero)) ++ last genero ++ "]"
+formatarGenero genero = "[" ++ intercalate "," genero ++ "]"
 
 -- Formata Sessão
 formatarSessao :: Sessao -> String
@@ -164,7 +164,7 @@ formatarAssento (fileira, numero, ocupado) =
 
 -- Formata os assentos no formato esperado
 formatarAssentos :: [Assento] -> String
-formatarAssentos assentos = "[" ++ intercalate "," (map formatarAssento assentos) ++ "]"
+formatarAssentos assentos = "[" ++ intercalate "," [formatarAssento a | a <- assentos] ++ "]"
 
 -- Formata o horário no formato HH:MM
 formatarHorario :: Horario -> String
@@ -188,7 +188,7 @@ formatarPedido (Ped id cliente sessao ingressos valor) =
 
 -- Função para formatar a lista de Ingressos
 formatarIngressos :: [Ingresso] -> String
-formatarIngressos ingressos = "[" ++ intercalate ";" (map formatarIngresso ingressos) ++ "]"
+formatarIngressos ingressos = "[" ++ intercalate ";" [formatarIngresso i | i <- ingressos] ++ "]"
 
 -- Função para formatar um Ingresso individual
 formatarIngresso :: Ingresso -> String
