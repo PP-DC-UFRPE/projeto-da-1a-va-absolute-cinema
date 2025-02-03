@@ -42,7 +42,7 @@ parseSessao filmes linha =
     case (filme, tipoSessao) of
         (Just f, Just ts) -> do Just $ Sessao id f horario dia ts is3D sala assentos
         _ -> Nothing
-    where 
+    where
         [idStr, titulo, horarioStr, diaStr, tipoStr, is3DStr, salaStr, assentosStr] = split ';' linha
         id = read idStr
         filme = find ((== read titulo) . getIdFilme) filmes
@@ -55,7 +55,7 @@ parseSessao filmes linha =
 
 -- Função para mapear uma linha de texto em um Pedido
 parsePedido :: [Cliente] -> [Sessao] -> String -> Maybe Pedido
-parsePedido clientes sessoes linha = 
+parsePedido clientes sessoes linha =
     case split ';' linha of
         [idStr, cpfCliente, idSessaoStr, ingressosStr, valorStr] -> do
             idPedido <- readMaybe idStr
@@ -92,7 +92,7 @@ parseAssentos str =
         -- Divide por vírgulas, cada grupo de 3 representará um assento
         assentosStrs = split ',' limpar
     in map (\[fileira, numero, ocupado] -> (head fileira, read numero, read ocupado)) (agrupaAssentos assentosStrs)
-    
+
 -- Agrupa em listas de 3 elementos
 agrupaAssentos :: [String] -> [[String]]
 agrupaAssentos [] = []
@@ -101,14 +101,14 @@ agrupaAssentos _ = error "Formato inválido de assento."
 
 -- Função para mapear a string de ingressos em uma lista de Ingresso
 parseIngressos :: String -> Maybe [Ingresso]
-parseIngressos str = 
+parseIngressos str =
     let cleanStr = filter (`notElem` "[]") str
         ingressosStrs = split ';' cleanStr
-    in sequence (map parseIngresso ingressosStrs)
+    in mapM parseIngresso ingressosStrs
 
 -- Função para mapear uma string em um Ingresso
 parseIngresso :: String -> Maybe Ingresso
-parseIngresso s = 
+parseIngresso s =
     case split ':' s of
         [tipoStr, assentoStr] -> do
             tipo <- parseTipoIngresso tipoStr

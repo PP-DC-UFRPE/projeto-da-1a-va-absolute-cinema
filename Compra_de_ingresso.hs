@@ -1,116 +1,185 @@
 module Compra_de_ingresso where
-    
 import Tipos
 import System.IO
 import Data.IORef
 import Pedidos (exibirPedido, gerarIdPedido)
+import Text.Read (readMaybe)
+import Clientes
+import Data.Maybe (isJust, fromJust)
+import Control.Monad.RWS (MonadState(put))
+import Sessoes (atualizarAssentosSessao, atualizarAssentos)
+import Utils (formatarAssento)
+
+gerarIngresso :: Assento -> IO Ingresso
+gerarIngresso (l, n, ocupado) = do
+    putStrLn $ "\nSelecione o tipo de ingresso do assento: " ++ show l ++ show n
+    putStrLn "1 - Inteira"
+    putStrLn "2 - Meia"
+    putStr "Escolha: "
+    hFlush stdout
+    input <- getLine
+    case input of
+        "1" -> return (Inteira valorInteira, (l, n, ocupado))
+        "2" -> return (Meia, (l, n, ocupado))
+        _ -> do
+            putStrLn "Tipo de ingresso inválido! Tente novamente."
+            gerarIngresso (l, n, ocupado)
+
+gerarIngressosPedido :: [Assento] -> IO [Ingresso]
+gerarIngressosPedido assentos = mapM (\(l, n, ocupado) -> gerarIngresso (l, n, ocupado)) assentos
+
+-- Atualização de assentos
+atualizarAssento :: (Char, Int) -> [Assento] -> [Assento]
+atualizarAssento (letra, num) assentos = [(l, n, if l == letra && n == num then True else ocupado) | (l, n, ocupado) <- assentos]
+
+-- Verifica se o assento está disponível
+verificaAssentoDisponivel :: (Char, Int) -> [Assento] -> Bool
+verificaAssentoDisponivel (letra, num) assentos =
+    not $ any (\(l, n, ocupado) -> l == letra && n == num && ocupado) assentos
+
+inputAssento :: IO (Char, Int)
+inputAssento = do
+    putStr "\nLetra do assento (A-H): "
+    hFlush stdout
+    inputLetra <- getLine
+    if head inputLetra `elem` ['A'..'H'] && length inputLetra == 1
+        then do
+            putStr "\nNúmero do assento (1-10): "
+            hFlush stdout
+            inputNum <- getLine
+            let num = readMaybe inputNum :: Maybe Int
+            if isJust num && fromJust num >= 1 && fromJust num <= 10
+                then return (head inputLetra, fromJust num)
+                else do
+                    putStrLn "Número de assento inválido! Tente novamente."
+                    inputAssento
+        else do
+            putStrLn "Letra de assento inválida! Tente novamente."
+            inputAssento
+
+escolherAssentos :: [Assento] -> IO [Assento]
+escolherAssentos assentos = escolherAssentosAux assentos []
+
+escolherAssentosAux :: [Assento] -> [Assento] -> IO [Assento]
+escolherAssentosAux assentos escolhidos = do
+    putStrLn "\nDigite 's' para selecionar um assento ou 'n' para finalizar a seleção."
+    putStr "Escolha: "
+    hFlush stdout
+    input <- getChar
+    _ <- getLine
+    if input == 's' || input == 'S'
+        then do
+            (letra, num) <- inputAssento
+            if verificaAssentoDisponivel (letra, num) assentos
+                then do
+                    putStrLn "\nAssento disponível, prosseguindo."
+                    let assentoAtualizado = atualizarAssento (letra, num) assentos
+                        assentoEscolhido = head $ filter (\(l, n, _) -> l == letra && n == num) assentoAtualizado
+                    escolherAssentosAux assentoAtualizado (assentoEscolhido : escolhidos)
+                else do
+                    putStrLn "\nAssento ocupado! Tente outro assento."
+                    escolherAssentosAux assentos escolhidos
+        else return (reverse escolhidos)
 
 -- Processo de compra de ingresso
 compra :: IORef Sistema -> IO ()
 compra sistemaRef = do
     sistema <- readIORef sistemaRef
     let (clientes, filmes, sessoes, pedidos) = sistema
-
-    -- Pergunta se o usuário deseja ver a lista de filmes
-    putStrLn "Você deseja ver a lista de filmes?"
-    putStr "Digite 's' se sim e 'n' se não: "
+    putStrLn "\n----- Compra de Ingresso -----"
+    putStrLn "Digite 's' para continuar ou qualquer outra tecla para cancelar."
+    putStr "Escolha: "
     hFlush stdout
     input <- getChar
     _ <- getLine
-    if input == 's' then printarFilmesESessoes sistema else return ()
-
-    -- Seleciona o filme a ser assistido
-    putStrLn "\nQual filme você quer assistir?"
-    putStr "Digite o número (0 a n): "
-    hFlush stdout
-    input <- getLine
-    let numFilme = read input :: Int
-    if numFilme >= 0 && numFilme < length filmes  -- Verifica se o número do filme é válido
-        then do
-            let filmeSelecionado = filmes !! numFilme
-            printarSessoesPorFilme sessoes filmeSelecionado  -- Exibe as sessões do filme
+    if input /= 's' && input /= 'S'
+        then putStrLn "\nCompra cancelada."
         else do
-            putStrLn "Número de filme inválido! Tente novamente."
 
-    -- Seleciona a sala do filme
-    putStr "Digite o número da sala: "
-    hFlush stdout
-    salaInput <- getLine
-    let salaNum = read salaInput :: Int
-    if salaNum >= 0  -- Verifica se o número da sala é válido
-        then printarAssentosPorNumeroSessao salaNum sessoes
-        else putStrLn "Número de sala inválido. Tente novamente."
+        -- Seleciona o filme a ser assistido
+        putStrLn "\nQual filme você quer assistir?"
+        mapM_ (\(i, filme) -> putStrLn $ show i ++ ") " ++ pegarTitulo filme) (zip [0..] filmes)
+        putStr "Digite o número (0 a n): "
+        hFlush stdout
+        input <- getLine
+        let numFilme = case readMaybe input :: Maybe Int of
+                Just n -> n
+                Nothing -> -1
+        if not (numFilme >= 0 && numFilme < length filmes)  -- Verifica se o número do filme é válido
+            then do
+                putStrLn "\nNúmero de filme inválido! Tente novamente."
+                compra sistemaRef
+            else do
+                let filmeSelecionado = filmes !! numFilme
+                    sessoesFilme = pegarSessoesPorFilme sessoes filmeSelecionado
+                if null sessoesFilme
+                    then do
+                        putStrLn "\nNão há sessões disponíveis para este filme."
+                        compra sistemaRef
+                    else do
+                        putStrLn "\nSessões disponíveis para este filme:"
+                        mapM_ (\(i, Sessao _ _ (h, m) (d, mo, a) t _ sala _) ->
+                            putStrLn $ show i ++ ") Sessão: " ++ show h ++ ":" ++ show m ++
+                                    " - " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++
+                                    " - " ++ show t ++ " - Sala " ++ show sala) (zip [0..] sessoesFilme)
+                        putStr "Digite o número (0 a n): "
+                        hFlush stdout
+                        input <- getLine
+                        let numSessao = case readMaybe input :: Maybe Int of
+                                Just n -> n
+                                Nothing -> -1
+                        if not (numSessao >= 0 && numSessao < length sessoesFilme)  -- Verifica se o número da sessão é válido
+                            then do
+                                putStrLn "\nNúmero de sessão inválido! Tente novamente."
+                                compra sistemaRef
+                            else do
+                                let sessaoSelecionada = sessoesFilme !! numSessao
+                                    assentosSessao = getAssentos sessaoSelecionada
+                                putStrLn "\nSessão selecionada."
+                                putStrLn "\nEscolha os assentos desejados:"
 
-    -- Seleciona o assento
-    putStr "Letra do assento: "
-    hFlush stdout
-    letra <- getChar
-    _ <- getLine
-    putStr "Número do assento: "
-    hFlush stdout
-    assentoInput <- getLine
-    let numAssento = read assentoInput :: Int
+                                printarAssentosDaSessao sessaoSelecionada
+                                assentosEscolhidos <- escolherAssentos assentosSessao
+                                putStrLn $ "\nAssentos selecionados: " ++ show assentosEscolhidos
+                                
+                                
+                                let assentosAtualizados = atualizarAssentos (map (\(l, n, _) -> (l, n)) assentosEscolhidos) assentosSessao
 
-    -- Verifica se o assento está disponível
-    let sessaoSelecionada = head (filter (\(Sessao _ _ _ _ _ _ n _) -> n == salaNum) sessoes)
-    let assentoDisponivel = verificaAssentoDisponivel letra numAssento sessaoSelecionada
+                                sessoesAtualizada <- atualizarAssentosSessao (getIdSessao sessaoSelecionada) assentosAtualizados sessoes
 
-    if assentoDisponivel
-        then do
-            putStrLn "Assento disponível, prosseguindo"
-            -- Processo de cadastro do cliente
-            putStrLn "\nInforme seus dados para cadastro:"
-            putStr "Nome: "
-            hFlush stdout
-            nome <- getLine
-            putStr "\nCPF: "
-            hFlush stdout
-            cpf <- getLine
-            putStr "\nIdade: "
-            hFlush stdout
-            idadeInput <- getLine
-            let idade = read idadeInput :: Int
-            if idade >= 18  -- Verifica se a idade é válida
-                then return ()  -- Continua se a idade for válida
-                else putStrLn "\nIdade inválida."
-            
-            -- Coleta ocupação do cliente
-            putStrLn "\nOcupação: (1 - Estudante, 2 - Professor, 3 - Outras)"
-            putStr "Escolha: "
-            hFlush stdout
-            ocupInput <- getLine
-            let ocupacao = case ocupInput of
-                    "1" -> Estudante
-                    "2" -> Professor
-                    _   -> Outras
-            let cliente = Cliente nome cpf idade ocupacao
+                                putStrLn "\nAssentos selecionados:"
+                                mapM_ (\(l, n, _) -> putStrLn $ "Assento: " ++ show l ++ show n) assentosEscolhidos
 
-            -- Determina o tipo de ingresso
-            putStrLn "\nTipo de ingresso: (1 - Inteira, 2 - Meia)"
-            putStr "Escolha: "
-            hFlush stdout
-            ingressoInput <- getLine
-            let tipoIngresso = case ingressoInput of
-                    "1" -> Inteira 20.0  -- Preço de ingresso inteiro
-                    _   -> Meia  -- Preço de meia-entrada
-            
-            -- Gera um novo ID para o pedido
-            let id = gerarIdPedido pedidos
+                                -- Determinar o tipo de ingresso pra cada assento
+                                ingressos <- gerarIngressosPedido assentosEscolhidos
 
-            -- Atualiza o sistema com o novo ingresso
-            let novoIngresso = (tipoIngresso, (letra, numAssento, True))
-                pedido = Ped id cliente sessaoSelecionada [novoIngresso] (calcularValor [novoIngresso])
-                novasSessoes = atualizarAssento letra numAssento sessoes
-                novoSistema = (clientes ++ [cliente], filmes, novasSessoes, pedidos ++ [pedido])
+                                -- Calcular o valor total dos ingressos
+                                let valorTotal = calcularValor ingressos
+                                putStrLn $ "\nValor total: R$ " ++ show valorTotal
 
-            writeIORef sistemaRef novoSistema
-            putStrLn "\nCompra finalizada! Ingresso gerado com sucesso."
-        else putStrLn "Assento ocupado! Tente outro assento."
-
--- Verifica se o assento está disponível
-verificaAssentoDisponivel :: Char -> Int -> Sessao -> Bool
-verificaAssentoDisponivel letra numAssento (Sessao _ _ _ _ _ _ _ assentos) =
-    not $ any (\(l, n, ocupado) -> l == letra && n == numAssento && ocupado) assentos
+                                putStrLn "\nDigite 's' para confirmar a compra ou 'n' para cancelar."
+                                putStr "Escolha: "
+                                hFlush stdout
+                                input <- getLine
+                                if input == "s" || input == "S"
+                                    then do
+                                        putStrLn "\nPara continuar, insira seu CPF."
+                                        putStr "CPF: "
+                                        hFlush stdout
+                                        cpf <- getLine
+                                        let cliente = buscarCliente cpf clientes
+                                        case cliente of
+                                            Nothing -> do
+                                                putStrLn "\nCliente não encontrado. Cadastre-se para continuar."
+                                                menuCadastrarCliente sistemaRef
+                                                compra sistemaRef
+                                            Just c -> do
+                                                putStrLn "\nCadastro identificado no sistema."
+                                                putStrLn "\nFinalizando compra..."
+                                                let novoPedido = Ped (gerarIdPedido pedidos) c sessaoSelecionada ingressos valorTotal
+                                                writeIORef sistemaRef (clientes, filmes, sessoesAtualizada, novoPedido : pedidos)
+                                                putStrLn "\nCompra finalizada! Pedido gerado com sucesso."
+                                else putStrLn "\nCompra cancelada."                                         
 
 -- Visualiza ingressos comprados
 visualizarIngressos :: IORef Sistema -> IO ()

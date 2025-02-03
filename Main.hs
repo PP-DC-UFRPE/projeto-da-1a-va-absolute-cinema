@@ -67,7 +67,6 @@ casos input sistemaRef = case input of
         loop sistemaRef  -- volta ao menu (por enquanto)
     "3" -> do
         compra sistemaRef  -- compra de ingresso
-        salvarSistema sistemaRef
         loop sistemaRef
     "0" -> do
         inicio sistemaRef -- Volta a tela inicial

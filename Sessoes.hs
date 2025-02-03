@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use infix" #-}
-
 module Sessoes where
 import Tipos
 import Dados
@@ -8,7 +5,8 @@ import Utils
 import Data.IORef
 import Data.Traversable (for)
 import System.IO
-import Distribution.Compat.Prelude (readMaybe)
+import Text.Read (readMaybe)
+import Control.Monad.RWS (MonadState(put))
 
 printarSessao :: Sessao -> IO ()
 printarSessao (Sessao id filme horario dia tipo is3d sala assentos) = do
@@ -50,6 +48,21 @@ editarSessao sessao sistemaRef = do
     writeIORef sistemaRef (clientes, filmes, sessoesAtualizadas, pedidos)
     putStrLn "\nSessao editada com sucesso"
 
+atualizarAssentos :: [(Char, Int)] -> [Assento] -> [Assento]
+atualizarAssentos [] assentos = assentos
+atualizarAssentos ((l, n):resto) assentos = atualizarAssentos resto [(letra, num, (letra == l && num == n) || ocupado) | (letra, num, ocupado) <- assentos]
+    
+atualizarAssentosSessao :: Id -> [Assento] -> [Sessao] -> IO [Sessao]
+atualizarAssentosSessao id novosAssentos sessoes = do
+    let sessao = buscarSessao id sessoes
+    case sessao of
+        Nothing -> return sessoes
+        Just s -> do
+            let sessaoAtualizada = s { getAssentos = novosAssentos }
+            putStrLn $ show sessaoAtualizada
+            putStrLn $ show (map (\sessao -> if getIdSessao sessao == id then sessaoAtualizada else sessao) sessoes)
+            return $ map (\sessao -> if getIdSessao sessao == id then sessaoAtualizada else sessao) sessoes
+
 gerarIdSessao :: [Sessao] -> Id
 gerarIdSessao sessoes =
     if null sessoes
@@ -61,13 +74,6 @@ gerarAssentos = do
     fileiras <- ['A'..'H']
     assentos <- [1..10]
     return (fileiras, assentos, False)
-
---gerarFileira :: 
-
---gerarMatrizAssentos :: [Assento] -> IO ()
---gerarMatrizAssentos assentos = do
---    putStrLn "  1  2  3  4  5  6  7  8  9  10"
-
 
 stringToHorario :: String -> Horario
 stringToHorario str = (read (take 2 str), read (drop 3 str))

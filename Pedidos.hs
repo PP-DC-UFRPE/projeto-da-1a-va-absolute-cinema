@@ -32,7 +32,7 @@ exibirIngresso (tipo, (letra, num, _)) = do
 
 tipoToString :: TipoIngresso -> String
 tipoToString (Inteira v) = "Inteira - R$ " ++ show v
-tipoToString Meia        = "Meia - R$ 10.00"
+tipoToString Meia        = "Meia - R$ " ++ show (valorInteira / 2)
 printarIngresso :: Ingresso -> IO ()
 printarIngresso (tipo, assento) = putStrLn $ formatarTipoIngresso tipo ++ " | Assento: " ++ formatarAssento assento
 

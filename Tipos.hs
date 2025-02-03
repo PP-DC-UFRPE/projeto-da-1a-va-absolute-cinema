@@ -1,7 +1,7 @@
 module Tipos where
 import Data.List
 import Data.IORef
-import System.IO 
+import System.IO
 
 -- Senha do administrador
 senhaAdmin :: String
@@ -37,6 +37,9 @@ data Sessao = Sessao {getIdSessao :: Id, getFilme :: Filme, getHorario :: Horari
 
 instance Eq Sessao where
     (Sessao id1 _ _ _ _ _ _ _) == (Sessao id2 _ _ _ _ _ _ _) = id1 == id2
+
+valorInteira :: Float
+valorInteira = 20.0
 
 data TipoIngresso = Inteira Float | Meia deriving Show
 type Ingresso = (TipoIngresso, Assento)
@@ -74,7 +77,7 @@ pegarPedidos sistemaRef = do
 calcularValor :: [Ingresso] -> Float
 calcularValor = sum . map (\(tipo, _) -> case tipo of
     Inteira v -> v -- se for inteiro, retorna o valor
-    Meia      -> 10.0) -- se for meia, somente 10
+    Meia -> valorInteira/2) -- se for meia, retorna metade do valor
 
 -- Pega o título
 pegarTitulo :: Filme -> String
@@ -103,13 +106,16 @@ printarFilmesESessoes (_, filmes, sessoes, _) = do
 -- Exibe as sessões de um filme específico
 printarSessoesPorFilme :: [Sessao] -> Filme -> IO ()
 printarSessoesPorFilme sessoes filme = do
+    let sessoesDoFilme = filter (\(Sessao _ f _ _ _ _ _ _) -> f == filme) sessoes
     putStrLn "\nSessões disponíveis: "
-    mapM_ (\(Sessao _ _ (h, m) (d, mo, a) t _ sala _) ->
-        putStrLn $ "  \nSessao: " ++ show h ++ ":" ++ show m ++
+    mapM_ (\(i, Sessao _ _ (h, m) (d, mo, a) t _ sala _) ->
+        putStrLn $ show i ++ ") Sessao: " ++ show h ++ ":" ++ show m ++
                    " - " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++
-                   " - " ++ show t ++ " - Sala " ++ show sala) 
-        (filter (\(Sessao _ f _ _ _ _ _ _) -> f == filme) sessoes)
-    putStrLn "________________________________________"
+                   " - " ++ show t ++ " - Sala " ++ show sala) (zip [0..] sessoesDoFilme)
+    putStrLn "____________________________________________"
+
+pegarSessoesPorFilme :: [Sessao] -> Filme -> [Sessao]
+pegarSessoesPorFilme sessoes filme = filter (\(Sessao _ f _ _ _ _ _ _) -> f == filme) sessoes
 
 
 -- Formata um assento para exibição com "Disponível" ou "Ocupado"
@@ -139,14 +145,3 @@ printarAssentosDaSessao sessao = mapM_ print (pegarAssentosDaSessao sessao)
 -- Pega os assentos da sessão
 pegarAssentosDaSessao :: Sessao -> [Assento]
 pegarAssentosDaSessao (Sessao _ _ _ _ _ _ _ assentos) = assentos
-
--- Atualização de assentos
-atualizarAssento :: Char -> Int -> [Sessao] -> [Sessao]
-atualizarAssento letra numAssento sessoes =
-    map (\(Sessao id filme horario dia tipo3D isSala sala assentos) -> 
-            Sessao id filme horario dia tipo3D isSala sala (map (atualizar letra numAssento) assentos)
-        ) sessoes
-  where
-    atualizar l n (lAssento, nAssento, ocupado)
-        | l == lAssento && n == nAssento = (lAssento, nAssento, True)
-        | otherwise                      = (lAssento, nAssento, ocupado)
