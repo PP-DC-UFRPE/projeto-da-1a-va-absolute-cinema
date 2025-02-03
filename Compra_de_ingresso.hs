@@ -19,7 +19,7 @@ gerarIngresso (l, n, ocupado) = do
     hFlush stdout
     input <- getLine
     case input of
-        "1" -> return (Inteira valorInteira, (l, n, ocupado))
+        "1" -> return (Inteira, (l, n, ocupado))
         "2" -> return (Meia, (l, n, ocupado))
         _ -> do
             putStrLn "Tipo de ingresso inválido! Tente novamente."

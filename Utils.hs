@@ -107,13 +107,15 @@ agrupaAssentos [] = []
 agrupaAssentos (a:b:c:xs) = [a, b, c] : agrupaAssentos xs
 agrupaAssentos _ = error "Formato inválido de assento."
 
+-- [ "Meia:H,4,True", "Inteira 20.0:A,1,False" ]
 -- Converte uma string de ingressos no formato "[Tipo:Assento;Tipo:Assento]" para uma lista de Ingresso.
 parseIngressos :: String -> Maybe [Ingresso]
 parseIngressos str =
     let cleanStr = filter (`notElem` "[]") str
         ingressosStrs = split ';' cleanStr
-    in sequence [ parseIngresso s | s <- ingressosStrs ]
+    in mapM parseIngresso ingressosStrs
 
+-- "Meia", "H,4,True"
 -- Converte uma string no formato "Tipo:Assento" para um objeto Ingresso.
 parseIngresso :: String -> Maybe Ingresso
 parseIngresso s =
@@ -126,13 +128,9 @@ parseIngresso s =
 
 -- Converte uma string no formato "Inteira 20.0" ou "Meia" para um TipoIngresso.
 parseTipoIngresso :: String -> Maybe TipoIngresso
-parseTipoIngresso s =
-    case words s of
-        ["Inteira", v] -> case readMaybe v of
-            Just f -> Just (Inteira f)
-            _ -> Nothing
-        ["Meia"] -> Just Meia
-        _ -> Nothing
+parseTipoIngresso "Meia" = Just Meia
+parseTipoIngresso "Inteira" = Just Inteira
+parseTipoIngresso _ = Nothing
 
 -- Converte uma string no formato "A,1,True" para um objeto Assento.
 parseAssento :: String -> Maybe Assento
@@ -206,7 +204,7 @@ formatarIngresso (tipo, assento) = formatarTipoIngresso tipo ++ ":" ++ formatarA
 
 -- Converte um objeto TipoIngresso em uma string ("Inteira 20.0" ou "Meia").
 formatarTipoIngresso :: TipoIngresso -> String
-formatarTipoIngresso (Inteira v) = "Inteira " ++ show v
+formatarTipoIngresso Inteira = "Inteira"
 formatarTipoIngresso Meia = "Meia"
 
 -- Converte um objeto Assento em uma string no formato "Fileira,Número,Ocupado".

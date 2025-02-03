@@ -41,7 +41,7 @@ instance Eq Sessao where
 valorInteira :: Float
 valorInteira = 20.0
 
-data TipoIngresso = Inteira Float | Meia deriving Show
+data TipoIngresso = Inteira | Meia deriving Show
 type Ingresso = (TipoIngresso, Assento)
 type Valor = Float
 data Pedido = Ped {getIdPedido :: Id, getCliente :: Cliente, getSessao :: Sessao, getIngressos :: [Ingresso], getValor :: Valor} deriving Show
@@ -76,7 +76,7 @@ pegarPedidos sistemaRef = do
 -- Calcula o valor total dos ingressos
 calcularValor :: [Ingresso] -> Float
 calcularValor = sum . map (\(tipo, _) -> case tipo of
-    Inteira v -> v -- se for inteiro, retorna o valor
+    Inteira -> valorInteira -- se for inteiro, retorna o valor
     Meia -> valorInteira/2) -- se for meia, retorna metade do valor
 
 -- Pega o título

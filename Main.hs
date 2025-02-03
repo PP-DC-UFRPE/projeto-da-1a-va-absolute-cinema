@@ -47,8 +47,8 @@ casosInicio input sistemaRef = case input of
 loop :: IORef Sistema -> IO ()
 loop sistemaRef = do
     putStrLn "\n----- Menu Principal -----"
-    putStrLn "1) Exibir Sessões disponíveis"
-    putStrLn "2) Cadastro de usuário"
+    putStrLn "1) Exibir sessões disponíveis"
+    putStrLn "2) Realizar cadastro"
     putStrLn "3) Comprar ingresso"
     putStrLn "0) Voltar"
     putStr "Input: "
@@ -64,7 +64,8 @@ casos input sistemaRef = case input of
         exibicao sistemaRef  -- Exibe filmes disponíveis
         loop sistemaRef
     "2" -> do
-        loop sistemaRef  -- volta ao menu (por enquanto)
+        menuCadastrarCliente sistemaRef  -- Cadastro de cliente
+        loop sistemaRef
     "3" -> do
         compra sistemaRef  -- compra de ingresso
         loop sistemaRef

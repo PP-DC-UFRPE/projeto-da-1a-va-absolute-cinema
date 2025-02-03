@@ -63,7 +63,6 @@ carregarPedidos caminho clientes sessoes = do
         else withFile caminho ReadMode $ \handle -> do
             conteudo <- hGetContents handle
             let pedidos = mapMaybe (parsePedido clientes sessoes) (lines conteudo)
-            putStrLn $ "Pedidos: " ++ show pedidos
             evaluate (length pedidos)
             return pedidos
 

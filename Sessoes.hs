@@ -59,8 +59,6 @@ atualizarAssentosSessao id novosAssentos sessoes = do
         Nothing -> return sessoes
         Just s -> do
             let sessaoAtualizada = s { getAssentos = novosAssentos }
-            putStrLn $ show sessaoAtualizada
-            putStrLn $ show (map (\sessao -> if getIdSessao sessao == id then sessaoAtualizada else sessao) sessoes)
             return $ map (\sessao -> if getIdSessao sessao == id then sessaoAtualizada else sessao) sessoes
 
 gerarIdSessao :: [Sessao] -> Id
