@@ -198,9 +198,9 @@ formatarPedido (Ped id cliente sessao ingressos valor) =
 formatarIngressos :: [Ingresso] -> String
 formatarIngressos ingressos = "[" ++ intercalate ";" [formatarIngresso i | i <- ingressos] ++ "]"
 
--- Converte um objeto Ingresso em uma string no formato "Tipo:Assento".
 formatarIngresso :: Ingresso -> String
-formatarIngresso (tipo, assento) = formatarTipoIngresso tipo ++ ":" ++ formatarAssento assento
+formatarIngresso (tipo, (fileira, numero, ocupado)) =
+    formatarTipoIngresso tipo ++ ":[" ++ [fileira] ++ "," ++ show numero ++ "," ++ show ocupado ++ "]"
 
 -- Converte um objeto TipoIngresso em uma string ("Inteira 20.0" ou "Meia").
 formatarTipoIngresso :: TipoIngresso -> String

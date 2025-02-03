@@ -19,7 +19,6 @@ Este sistema tem como objetivo fornecer funcionalidades para a gestão de sessõ
   - Compra de ingressos, sendo eles inteira ou meia
 - **Sistema de Cadastro**
   - Registro de novos clientes
-  - Edição de perfil
 
 ### 🔐 Painel Administrativo (Modo Admin)
 - **Gestão de Conteúdo**
@@ -36,9 +35,9 @@ Este sistema tem como objetivo fornecer funcionalidades para a gestão de sessõ
 
 ### Pré-requisitos
 - GHC 8.10+
-- Git para clonar repositório
+- Git
 
-### Instalação
+### Execução
 ```bash
 git clone https://github.com/seu-usuario/absolute-cinema.git
 cd absolute-cinema
