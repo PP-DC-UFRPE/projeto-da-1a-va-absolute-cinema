@@ -117,13 +117,13 @@ printarSessoesPorFilme sessoes filme = do
 pegarSessoesPorFilme :: [Sessao] -> Filme -> [Sessao]
 pegarSessoesPorFilme sessoes filme = filter (\(Sessao _ f _ _ _ _ _ _) -> f == filme) sessoes
 
-
 -- Formata um assento para exibição com "Disponível" ou "Ocupado"
 formatarExibirAssento :: Assento -> String
 formatarExibirAssento (letra, numero, ocupado) =
     let status = if ocupado then "Ocupado" else "Disponível"
     in "(" ++ [letra] ++ show numero ++ ", " ++ status ++ ")"
 
+-- Obs: Função feita usando IA, o codigo para gerar uma matriz estava com erros, o que não estava ficando da forma que deveria. Por isso solicitamos o uso da IA para ajudar a criar uma matriz.
 -- Exibe os assentos disponíveis na sessão selecionada
 printarAssentosPorNumeroSessao :: Int -> [Sessao] -> IO ()
 printarAssentosPorNumeroSessao salaNum sessoes = do
@@ -132,7 +132,26 @@ printarAssentosPorNumeroSessao salaNum sessoes = do
         [] -> putStrLn "Sala não encontrada!"
         (Sessao _ _ _ (d, mo, a) _ _ _ assentos : _) -> do
             putStrLn $ "Assentos disponíveis na sala (Dia: " ++ show d ++ "/" ++ show mo ++ "/" ++ show a ++ "):"
-            mapM_ (putStrLn . formatarExibirAssento) assentos
+            let sortedAssentos = sortBy (\(a1, n1, _) (a2, n2, _) -> 
+                                        case compare a1 a2 of
+                                            EQ -> compare n1 n2
+                                            other -> other) assentos
+                groupedAssentos = groupBy (\(a1, _, _) (a2, _, _) -> a1 == a2) sortedAssentos
+                allSeatNumbers = [ n | (_, n, _) <- assentos ]
+                maxSeat = if null allSeatNumbers then 0 else maximum allSeatNumbers
+                header = "    " ++ unwords (map (\n -> if n < 10 then " " ++ show n else show n) [1..maxSeat])
+            putStrLn header
+            mapM_ (\group -> do
+                let (letra, _, _) = head group
+                    seatsInRow = [ (n, ocup) | (_, n, ocup) <- group ]
+                    statuses = [ case lookup num seatsInRow of
+                                    Just True  -> "X"
+                                    Just False -> " "
+                                    Nothing    -> " "
+                                | num <- [1..maxSeat] ]
+                    rowStr = letra : "  | " ++ unwords (map (\s -> "[" ++ s ++ "]") statuses)
+                putStrLn rowStr
+                ) groupedAssentos
 
 -- Printa assentos das sessões
 printarAssentosDasSessoes :: [Sessao] -> IO ()
