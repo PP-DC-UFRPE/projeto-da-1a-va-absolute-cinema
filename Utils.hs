@@ -5,15 +5,18 @@ import Data.List (find)
 import Data.List (intercalate)
 import Text.Read (readMaybe)
 
--- Função auxiliar para dividir strings em partes com base em um delimitador
+-- Função auxiliar para dividir strings em partes com base em um delimitador.
+-- Exemplo: split ';' "a;b;c" -> ["a", "b", "c"]
 split :: Char -> String -> [String]
 split delim str =
     case break (== delim) str of
         (part, "") -> [part]
         (part, _:rest) -> part : split delim rest
 
---- Funções de Mapeamento dos objetos
--- Função para carregar clientes de um arquivo
+--- Funções de mapeamento de strings para objetos
+
+-- Converte uma linha de texto em um objeto do tipo Cliente.
+-- Formato esperado: "Nome;CPF;Idade;Ocupação"
 parseCliente :: String -> Cliente
 parseCliente linha = Cliente nome cpf idade ocupacao
     where
@@ -25,8 +28,8 @@ parseCliente linha = Cliente nome cpf idade ocupacao
             "Outras"    -> Outras
             _           -> error "Ocupação inválida no arquivo"
 
--- Função para mapear uma linha de texto em um objeto do tipo Filme
--- Cada linha segue o formato: "Titulo;[Genero1,Genero2];Duracao;Sinopse"
+-- Converte uma linha de texto em um objeto do tipo Filme.
+-- Formato esperado: "ID;Título;Gênero;Duração;Sinopse"
 parseFilme :: String -> Filme
 parseFilme linha = Filme id titulo genero duracao sinopse
     where
@@ -35,12 +38,12 @@ parseFilme linha = Filme id titulo genero duracao sinopse
         genero = parseGenero generoStr
         duracao = read duracaoStr
 
--- Função para mapear uma linha de texto em uma Sessão
--- A linha contém informações do filme, horário, tipo de sessão, 3D, número da sala e assentos
+-- Converte uma linha de texto em um objeto do tipo Sessão.
+-- Formato esperado: "ID;TítuloFilme;Horário;Dia;TipoSessão;3D;Sala;Assentos"
 parseSessao :: [Filme] -> String -> Maybe Sessao
 parseSessao filmes linha =
     case (filme, tipoSessao) of
-        (Just f, Just ts) -> do Just $ Sessao id f horario dia ts is3D sala assentos
+        (Just f, Just ts) -> Just $ Sessao id f horario dia ts is3D sala assentos
         _ -> Nothing
     where 
         [idStr, titulo, horarioStr, diaStr, tipoStr, is3DStr, salaStr, assentosStr] = split ';' linha
@@ -53,7 +56,8 @@ parseSessao filmes linha =
         sala = read salaStr
         assentos = parseAssentos assentosStr
 
--- Função para mapear uma linha de texto em um Pedido
+-- Converte uma linha de texto em um objeto do tipo Pedido.
+-- Formato esperado: "ID;CPFCliente;IDSessão;Ingressos;Valor"
 parsePedido :: [Cliente] -> [Sessao] -> String -> Maybe Pedido
 parsePedido clientes sessoes linha = 
     case split ';' linha of
@@ -67,24 +71,25 @@ parsePedido clientes sessoes linha =
             return $ Ped idPedido cliente sessao ingressos valor
         _ -> Nothing
 
--- Função para mapear o campo de gêneros de um filme de uma string para uma lista de strings
--- Exemplo: "[Aventura,Ficção]" -> ["Aventura", "Ficção"]
+--- Funções auxiliares para mapeamento de strings
+
+-- Converte uma string de gêneros no formato "[Ação,Drama]" para uma lista de strings.
 parseGenero :: String -> [String]
 parseGenero str = split ',' (filter (`notElem` "[]") str)
 
--- Função para mapear uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros)
+-- Converte uma string no formato "HH:MM" para um tipo Horario (tupla de inteiros).
 parseHorario :: String -> Horario
 parseHorario str =
     let [h, m] = [read x | x <- split ':' str]
     in (h, m)
 
--- Função para mapear uma string no formato "DD/MM/AAAA" para um tipo Dia (tupla de inteiros)
+-- Converte uma string no formato "DD/MM/AAAA" para um tipo Dia (tupla de inteiros).
 parseDia :: String -> Dia
 parseDia str =
     let [d, m, a] = [read x | x <- split '/' str]
     in (d, m, a)
 
--- Função para mapear uma string de assentos para uma lista de Assentos
+-- Converte uma string de assentos no formato "[A,1,True;B,2,False]" para uma lista de Assento.
 parseAssentos :: String -> [Assento]
 parseAssentos str =
     let -- Remove os colchetes ao redor da lista de assentos
@@ -92,21 +97,22 @@ parseAssentos str =
         -- Divide por vírgulas, cada grupo de 3 representará um assento
         assentosStrs = split ',' limpar
     in map (\[fileira, numero, ocupado] -> (head fileira, read numero, read ocupado)) (agrupaAssentos assentosStrs)
-    
--- Agrupa em listas de 3 elementos
+
+-- Agrupa uma lista de strings em grupos de 3 elementos.
+-- Exemplo: ["A", "1", "True", "B", "2", "False"] -> [["A", "1", "True"], ["B", "2", "False"]]
 agrupaAssentos :: [String] -> [[String]]
 agrupaAssentos [] = []
 agrupaAssentos (a:b:c:xs) = [a, b, c] : agrupaAssentos xs
 agrupaAssentos _ = error "Formato inválido de assento."
 
--- Função para mapear a string de ingressos em uma lista de Ingresso
+-- Converte uma string de ingressos no formato "[Tipo:Assento;Tipo:Assento]" para uma lista de Ingresso.
 parseIngressos :: String -> Maybe [Ingresso]
 parseIngressos str = 
     let cleanStr = filter (`notElem` "[]") str
         ingressosStrs = split ';' cleanStr
     in sequence [ parseIngresso s | s <- ingressosStrs ]
 
--- Função para mapear uma string em um Ingresso
+-- Converte uma string no formato "Tipo:Assento" para um objeto Ingresso.
 parseIngresso :: String -> Maybe Ingresso
 parseIngresso s = 
     case split ':' s of
@@ -116,7 +122,7 @@ parseIngresso s =
             Just (tipo, assento)
         _ -> Nothing
 
--- Função para mapear a string de TipoIngresso
+-- Converte uma string no formato "Inteira 20.0" ou "Meia" para um TipoIngresso.
 parseTipoIngresso :: String -> Maybe TipoIngresso
 parseTipoIngresso s =
     case words s of
@@ -126,7 +132,7 @@ parseTipoIngresso s =
         ["Meia"] -> Just Meia
         _ -> Nothing
 
--- Função para mapear a string de Assento
+-- Converte uma string no formato "A,1,True" para um objeto Assento.
 parseAssento :: String -> Maybe Assento
 parseAssento s =
     case split ',' s of
@@ -137,68 +143,70 @@ parseAssento s =
             Just (f, n, o)
         _ -> Nothing
 
--- Formatar Cliente
+--- Funções para formatar objetos em strings
+
+-- Converte um objeto Cliente em uma string no formato "Nome;CPF;Idade;Ocupação".
 formatarCliente :: Cliente -> String
 formatarCliente (Cliente nome cpf idade ocupacao) =
     nome ++ ";" ++ cpf ++ ";" ++ show idade ++ ";" ++ show ocupacao
 
--- Formata Filme
+-- Converte um objeto Filme em uma string no formato "ID;Título;Gênero;Duração;Sinopse".
 formatarFilme :: Filme -> String
 formatarFilme (Filme id titulo genero duracao sinopse) =
     show id ++ ";" ++ titulo ++ ";" ++ formatarGenero genero ++ ";" ++ show duracao ++ ";" ++ sinopse
 
--- Formata o genero no formato [Ação, Drama]
+-- Converte uma lista de gêneros em uma string no formato "[Ação,Drama]".
 formatarGenero :: Genero -> String
 formatarGenero genero = "[" ++ intercalate "," genero ++ "]"
 
--- Formata Sessão
+-- Converte um objeto Sessão em uma string no formato "ID;IDFilme;Horário;Dia;TipoSessão;3D;Sala;Assentos".
 formatarSessao :: Sessao -> String
 formatarSessao (Sessao id (Filme idFilme _ _ _ _) horario dia tipoSessao is3D sala assentos) =
     show id ++ ";" ++ show idFilme ++ ";" ++ formatarHorario horario ++ ";" ++ formatarDia dia ++ ";"
         ++ formatarTipo tipoSessao ++ ";" ++ show is3D ++ ";" ++ show sala ++ ";" ++ formatarAssentos assentos
 
--- Formata um único assento
+-- Converte um objeto Assento em uma string no formato "[Fileira,Número,Ocupado]".
 formatarAssento :: Assento -> String
 formatarAssento (fileira, numero, ocupado) =
     "[" ++ [fileira] ++ "," ++ show numero ++ "," ++ show ocupado ++ "]"
 
--- Formata os assentos no formato esperado
+-- Converte uma lista de Assento em uma string no formato "[[A,1,True],[B,2,False]]".
 formatarAssentos :: [Assento] -> String
 formatarAssentos assentos = "[" ++ intercalate "," [formatarAssento a | a <- assentos] ++ "]"
 
--- Formata o horário no formato HH:MM
+-- Converte um objeto Horario em uma string no formato "HH:MM".
 formatarHorario :: Horario -> String
 formatarHorario (h, m) = show h ++ ":" ++ (if m < 10 then "0" ++ show m else show m)
 
--- Formata a data no formato DD/MM/AAAA
+-- Converte um objeto Dia em uma string no formato "DD/MM/AAAA".
 formatarDia :: Dia -> String
 formatarDia (d, m, a) =
     let formatar n = if n < 10 then "0" ++ show n else show n
     in formatar d ++ "/" ++ formatar m ++ "/" ++ show a
 
--- Formata o tipo de sessão (Dublado ou Legendado)
+-- Converte um objeto TipoSessao em uma string ("Dublado" ou "Legendado").
 formatarTipo :: TipoSessao -> String
 formatarTipo Dublado = "Dublado"
 formatarTipo Legendado = "Legendado"
 
--- Função para formatar um Pedido em uma string
+-- Converte um objeto Pedido em uma string no formato "ID;CPFCliente;IDSessão;Ingressos;Valor".
 formatarPedido :: Pedido -> String
 formatarPedido (Ped id cliente sessao ingressos valor) =
     intercalate ";" [show id, getCpf cliente, show (getIdSessao sessao), formatarIngressos ingressos, show valor]
 
--- Função para formatar a lista de Ingressos
+-- Converte uma lista de Ingresso em uma string no formato "[Tipo:Assento;Tipo:Assento]".
 formatarIngressos :: [Ingresso] -> String
 formatarIngressos ingressos = "[" ++ intercalate ";" [formatarIngresso i | i <- ingressos] ++ "]"
 
--- Função para formatar um Ingresso individual
+-- Converte um objeto Ingresso em uma string no formato "Tipo:Assento".
 formatarIngresso :: Ingresso -> String
 formatarIngresso (tipo, assento) = formatarTipoIngresso tipo ++ ":" ++ formatarAssento assento
 
--- Função para formatar o TipoIngresso
+-- Converte um objeto TipoIngresso em uma string ("Inteira 20.0" ou "Meia").
 formatarTipoIngresso :: TipoIngresso -> String
 formatarTipoIngresso (Inteira v) = "Inteira " ++ show v
 formatarTipoIngresso Meia = "Meia"
 
--- Função para formatar o Assento
+-- Converte um objeto Assento em uma string no formato "Fileira,Número,Ocupado".
 formatarAssentoPedido :: Assento -> String
 formatarAssentoPedido (f, n, o) = [f] ++ "," ++ show n ++ "," ++ show o
